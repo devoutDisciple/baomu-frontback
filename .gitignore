@@ -1,0 +1,12 @@
+node_modules
+.vs_code
+.DS_Store
+public
+.vscode
+sshKey
+config
+asserts
+ssl
+wechatPayCert
+wechatPayCert/*
+baomupay
