@@ -39,8 +39,9 @@ module.exports = (sequelize) => {
       comment: "年龄"
     },
     grade: {
-      type: Sequelize.STRING(255),
+      type: Sequelize.INTEGER,
       allowNull: true,
+      defaultValue: 0,
       comment: "评分"
     },
     comment_num: {
@@ -64,6 +65,7 @@ module.exports = (sequelize) => {
     goods_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
+      defaultValue: 0,
       comment: "点赞数量"
     },
     is_name: {

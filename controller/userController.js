@@ -8,4 +8,9 @@ router.post('/updateInfo', (req, res) => {
 	userService.updateInfo(req, res);
 });
 
+// 更新用户地理位置
+router.post('/updateLocation', (req, res) => {
+	userService.updateLocation(req, res);
+});
+
 module.exports = router;

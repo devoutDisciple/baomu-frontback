@@ -6,8 +6,10 @@ var _bg_img = require("./bg_img");
 var _comment_record = require("./comment_record");
 var _content = require("./content");
 var _data = require("./data");
+var _demand = require("./demand");
 var _feedback = require("./feedback");
 var _goods_record = require("./goods_record");
+var _instrument = require("./instrument");
 var _message = require("./message");
 var _notice = require("./notice");
 var _posts = require("./posts");
@@ -28,8 +30,10 @@ function initModels(sequelize) {
   var comment_record = _comment_record(sequelize, Sequelize);
   var content = _content(sequelize, Sequelize);
   var data = _data(sequelize, Sequelize);
+  var demand = _demand(sequelize, Sequelize);
   var feedback = _feedback(sequelize, Sequelize);
   var goods_record = _goods_record(sequelize, Sequelize);
+  var instrument = _instrument(sequelize, Sequelize);
   var message = _message(sequelize, Sequelize);
   var notice = _notice(sequelize, Sequelize);
   var posts = _posts(sequelize, Sequelize);
@@ -51,8 +55,10 @@ function initModels(sequelize) {
     comment_record,
     content,
     data,
+    demand,
     feedback,
     goods_record,
+    instrument,
     message,
     notice,
     posts,

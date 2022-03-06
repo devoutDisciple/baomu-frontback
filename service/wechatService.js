@@ -33,25 +33,6 @@ module.exports = {
 				);
 				res.send(resultMessage.success(phoneNumber));
 			}
-
-			// 获取access_token
-			// const { access_token } = await wechatUtil.getAccessToken();
-			// request(
-			// 	{
-			// 		url: `${config.wechat_phone_url}?access_token=${access_token}`,
-			// 		method: 'POST',
-			// 		json: true,
-			// 		headers: {
-			// 			'content-type': 'application/json',
-			// 		},
-			// 		body: JSON.stringify({ code: iv, access_token }),
-			// 	},
-			// 	(error, response, body) => {
-			// 		if (!error && response.statusCode === 200) {
-			// 		}
-			// 	},
-			// );
-			// res.send(resultMessage.success(result));
 		} catch (error) {
 			res.send(resultMessage.error());
 		}
