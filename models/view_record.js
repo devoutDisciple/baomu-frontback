@@ -1,38 +1,20 @@
 const Sequelize = require('sequelize');
 
 module.exports = (sequelize) => {
-  return sequelize.define('detail', {
+  return sequelize.define('view_record', {
     id: {
       autoIncrement: true,
       type: Sequelize.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    sub_id: {
+    user_id: {
       type: Sequelize.INTEGER,
       allowNull: true
     },
-    url: {
-      type: Sequelize.STRING(255),
+    other_id: {
+      type: Sequelize.INTEGER,
       allowNull: true
-    },
-    detail_urls: {
-      type: Sequelize.STRING(2000),
-      allowNull: true,
-      defaultValue: "[]",
-      comment: "课程详情的图片"
-    },
-    teacher_urls: {
-      type: Sequelize.STRING(2000),
-      allowNull: true,
-      defaultValue: "[]",
-      comment: "师资团队的图片"
-    },
-    signup_urls: {
-      type: Sequelize.STRING(2000),
-      allowNull: true,
-      defaultValue: "[]",
-      comment: "报名须知的图片"
     },
     create_time: {
       type: Sequelize.DATE,
@@ -46,7 +28,7 @@ module.exports = (sequelize) => {
     }
   }, {
     sequelize,
-    tableName: 'detail',
+    tableName: 'view_record',
     timestamps: false,
     indexes: [
       {

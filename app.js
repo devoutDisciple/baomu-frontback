@@ -11,7 +11,7 @@ const config = require('./config/config');
 const controller = require('./controller/index');
 const ChangeLog = require('./middleware/ChangeLog');
 const LogMiddleware = require('./middleware/LogMiddleware');
-require('./schedule');
+// require('./schedule');
 
 // 开启ssl证书
 const privateKey = fs.readFileSync(path.join(__dirname, './ssl/7158614_chiangky.com.key'), 'utf8');

@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 module.exports = (sequelize) => {
-  return sequelize.define('order', {
+  return sequelize.define('content', {
     id: {
       autoIncrement: true,
       type: Sequelize.INTEGER,
@@ -9,49 +9,49 @@ module.exports = (sequelize) => {
       primaryKey: true
     },
     user_id: {
-      type: Sequelize.STRING(255),
-      allowNull: true,
-      comment: "用户id"
-    },
-    open_id: {
-      type: Sequelize.STRING(255),
-      allowNull: true
-    },
-    team_uuid: {
-      type: Sequelize.STRING(255),
-      allowNull: true,
-      comment: "拼团的uuid"
-    },
-    out_trade_no: {
-      type: Sequelize.STRING(255),
-      allowNull: false,
-      primaryKey: true,
-      comment: "内部订单号"
-    },
-    transaction_id: {
-      type: Sequelize.STRING(255),
-      allowNull: true,
-      comment: "微信支付单号"
-    },
-    subject_id: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "课程id"
+      comment: "发布人id"
     },
-    project_id: {
+    child_id: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "班级id"
-    },
-    pay_state: {
-      type: Sequelize.STRING(255),
-      allowNull: true,
-      comment: "1-已支付 2-已退款 其他"
+      comment: "关联的id"
     },
     type: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "1-报名 2-组团"
+      defaultValue: 1,
+      comment: "1-广场帖子 2-"
+    },
+    img_url: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "展示图片url"
+    },
+    goods_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "点赞"
+    },
+    comment_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "评论"
+    },
+    share_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "转发"
+    },
+    hot: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "热度"
     },
     create_time: {
       type: Sequelize.DATE,
@@ -65,7 +65,7 @@ module.exports = (sequelize) => {
     }
   }, {
     sequelize,
-    tableName: 'order',
+    tableName: 'content',
     timestamps: false,
     indexes: [
       {
@@ -74,7 +74,6 @@ module.exports = (sequelize) => {
         using: "BTREE",
         fields: [
           { name: "id" },
-          { name: "out_trade_no" },
         ]
       },
     ]

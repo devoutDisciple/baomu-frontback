@@ -4,7 +4,7 @@ const path = require('path');
 const request = require('request');
 const config = require('../config/config');
 const ObjectUtil = require('./ObjectUtil');
-const baomoConfig = require('../config/baomuConfig');
+const baomoConfig = require('../config/config');
 
 // 使用框架
 const pay = new WxPay({
@@ -82,7 +82,10 @@ module.exports = {
 				request.get(
 					`${config.wechat_openid_url}?appid=${config.wx_appid}&secret=${config.wx_appSecret}&js_code=${code}&grant_type=${config.wx_grantType}`,
 					async (error, response, body) => {
-						if (error) reject(error);
+						if (error) {
+							console.log(error);
+							reject(error);
+						}
 						resolve(JSON.parse(body));
 					},
 				);

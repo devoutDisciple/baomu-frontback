@@ -1,22 +1,33 @@
 const Sequelize = require('sequelize');
 
 module.exports = (sequelize) => {
-  return sequelize.define('teacher', {
+  return sequelize.define('notice', {
     id: {
       autoIncrement: true,
       type: Sequelize.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    name: {
-      type: Sequelize.STRING(255),
-      allowNull: true
+    circle_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      comment: "圈子id"
     },
-    photo: {
+    title: {
       type: Sequelize.STRING(255),
       allowNull: true,
-      defaultValue: "photo.png",
-      comment: "头像"
+      comment: "标题"
+    },
+    desc: {
+      type: Sequelize.STRING(8000),
+      allowNull: true,
+      comment: "内容"
+    },
+    type: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "1-公告 2-置顶"
     },
     create_time: {
       type: Sequelize.DATE,
@@ -31,7 +42,7 @@ module.exports = (sequelize) => {
     }
   }, {
     sequelize,
-    tableName: 'teacher',
+    tableName: 'notice',
     timestamps: false,
     indexes: [
       {

@@ -4,7 +4,7 @@ const path = require('path');
 const resultMessage = require('../util/resultMessage');
 const ObjectUtil = require('../util/ObjectUtil');
 const wechatUtil = require('../util/wechatUtil');
-const baomuConfig = require('../config/baomuConfig');
+const config = require('../config/config');
 
 module.exports = {
 	// 支付
@@ -13,8 +13,8 @@ module.exports = {
 			const { money, openid } = req.body;
 			// 使用框架
 			const pay = new WxPay({
-				appid: baomuConfig.appid,
-				mchid: baomuConfig.mchid,
+				appid: config.appid,
+				mchid: config.mchid,
 				publicKey: fs.readFileSync(path.join(__dirname, '../baomupay/apiclient_cert.pem')), // 公钥
 				privateKey: fs.readFileSync(path.join(__dirname, '../baomupay/apiclient_key.pem')), // 秘钥
 			});
