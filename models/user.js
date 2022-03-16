@@ -15,12 +15,23 @@ module.exports = (sequelize) => {
     },
     nickname: {
       type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "微信名称"
+    },
+    username: {
+      type: Sequelize.STRING(255),
       allowNull: true
     },
     photo: {
       type: Sequelize.STRING(255),
       allowNull: true,
       comment: "头像"
+    },
+    bg_url: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      defaultValue: "person_default_bg.png",
+      comment: "背景图片"
     },
     phone: {
       type: Sequelize.STRING(255),
@@ -39,9 +50,9 @@ module.exports = (sequelize) => {
       comment: "年龄"
     },
     grade: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING(255),
       allowNull: true,
-      defaultValue: 0,
+      defaultValue: "5.0",
       comment: "评分"
     },
     comment_num: {
@@ -101,6 +112,21 @@ module.exports = (sequelize) => {
       type: Sequelize.STRING(255),
       allowNull: true,
       comment: "纬度"
+    },
+    province: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "省份"
+    },
+    city: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "城市"
+    },
+    address: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "详细地址"
     },
     desc: {
       type: Sequelize.STRING(255),

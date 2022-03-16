@@ -13,4 +13,14 @@ router.post('/updateLocation', (req, res) => {
 	userService.updateLocation(req, res);
 });
 
+// 根据距离远近获取首页演员
+router.get('/userByLocation', (req, res) => {
+	userService.getUserByLocation(req, res);
+});
+
+// 获取个人信息详情
+router.get('/userDetail', (req, res) => {
+	userService.getUserDetail(req, res);
+});
+
 module.exports = router;
