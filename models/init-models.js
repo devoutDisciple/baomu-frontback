@@ -9,12 +9,14 @@ var _data = require("./data");
 var _demand = require("./demand");
 var _feedback = require("./feedback");
 var _goods_record = require("./goods_record");
+var _idcard = require("./idcard");
 var _instrument = require("./instrument");
 var _level = require("./level");
 var _message = require("./message");
 var _notice = require("./notice");
 var _posts = require("./posts");
 var _register = require("./register");
+var _school = require("./school");
 var _skill = require("./skill");
 var _user = require("./user");
 var _user_attention_user = require("./user_attention_user");
@@ -32,12 +34,14 @@ function initModels(sequelize) {
   var demand = _demand(sequelize, Sequelize);
   var feedback = _feedback(sequelize, Sequelize);
   var goods_record = _goods_record(sequelize, Sequelize);
+  var idcard = _idcard(sequelize, Sequelize);
   var instrument = _instrument(sequelize, Sequelize);
   var level = _level(sequelize, Sequelize);
   var message = _message(sequelize, Sequelize);
   var notice = _notice(sequelize, Sequelize);
   var posts = _posts(sequelize, Sequelize);
   var register = _register(sequelize, Sequelize);
+  var school = _school(sequelize, Sequelize);
   var skill = _skill(sequelize, Sequelize);
   var user = _user(sequelize, Sequelize);
   var user_attention_user = _user_attention_user(sequelize, Sequelize);
@@ -56,12 +60,14 @@ function initModels(sequelize) {
     demand,
     feedback,
     goods_record,
+    idcard,
     instrument,
     level,
     message,
     notice,
     posts,
     register,
+    school,
     skill,
     user,
     user_attention_user,
