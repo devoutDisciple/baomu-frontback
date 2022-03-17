@@ -36,6 +36,7 @@ module.exports = {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const levels = await levelModal.findOne({ where: { user_id, is_delete: 1 } });
+			if (!levels) return res.send(resultMessage.success([]));
 			const result = responseUtil.renderFieldsObj(levels, ['school_id', 'level_id', 'date', 'url', 'state']);
 			if (result) {
 				result.url = config.preUrl.levelUrl + result.url;

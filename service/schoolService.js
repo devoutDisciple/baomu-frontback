@@ -56,6 +56,7 @@ module.exports = {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const levels = await schoolModal.findOne({ where: { user_id, is_delete: 1 } });
+			if (!levels) return res.send(resultMessage.success([]));
 			const result = responseUtil.renderFieldsObj(levels, [
 				'user_id',
 				'school_url',

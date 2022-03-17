@@ -35,6 +35,7 @@ module.exports = {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const skills = await skillModal.findAll({ where: { user_id, is_delete: 1 } });
+			if (!skills) return res.send(resultMessage.success([]));
 			const result = responseUtil.renderFieldsAll(skills, ['skill_id', 'grade']);
 			res.send(resultMessage.success(result));
 		} catch (error) {
