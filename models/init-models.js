@@ -15,6 +15,7 @@ var _level = require("./level");
 var _message = require("./message");
 var _notice = require("./notice");
 var _posts = require("./posts");
+var _production = require("./production");
 var _register = require("./register");
 var _school = require("./school");
 var _skill = require("./skill");
@@ -40,6 +41,7 @@ function initModels(sequelize) {
   var message = _message(sequelize, Sequelize);
   var notice = _notice(sequelize, Sequelize);
   var posts = _posts(sequelize, Sequelize);
+  var production = _production(sequelize, Sequelize);
   var register = _register(sequelize, Sequelize);
   var school = _school(sequelize, Sequelize);
   var skill = _skill(sequelize, Sequelize);
@@ -66,6 +68,7 @@ function initModels(sequelize) {
     message,
     notice,
     posts,
+    production,
     register,
     school,
     skill,
