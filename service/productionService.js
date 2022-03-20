@@ -12,7 +12,17 @@ const productionModal = production(sequelize);
 
 module.exports = {
 	// 上传图片
-	uploadFile: async (req, res, filename) => {
+	uploadImg: async (req, res, filename) => {
+		try {
+			res.send(resultMessage.success({ url: filename }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 上传视频
+	uploadVideo: async (req, res, filename) => {
 		try {
 			res.send(resultMessage.success({ url: filename }));
 		} catch (error) {
@@ -57,7 +67,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const lists = await productionModal.findAll({ where: { user_id, is_delete: 1 }, order: [['create_time', 'DESC']] });
 			if (!lists || lists.lenght === 0) return res.send(resultMessage.success([]));
-			const result = responseUtil.renderFieldsAll(lists, ['user_id', 'title', 'desc', 'instr_id', 'img_url', 'video']);
+			const result = responseUtil.renderFieldsAll(lists, ['id', 'user_id', 'title', 'desc', 'instr_id', 'img_url', 'video']);
 			result.forEach((item) => {
 				item.img_url = JSON.parse(item.img_url);
 				item.video = JSON.parse(item.video);
@@ -76,6 +86,44 @@ module.exports = {
 					item.showImg = item.img_url[0];
 				}
 			});
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取作品详情
+	getDetailById: async (req, res) => {
+		try {
+			const { id } = req.query;
+			if (!id) return res.send(resultMessage.error('系统错误'));
+			const lists = await productionModal.findOne({ where: { id, is_delete: 1 } });
+			if (!lists) return res.send(resultMessage.success({}));
+			const result = responseUtil.renderFieldsObj(lists, [
+				'id',
+				'user_id',
+				'title',
+				'desc',
+				'instr_id',
+				'img_url',
+				'video',
+				'create_time',
+			]);
+			result.img_url = JSON.parse(result.img_url);
+			result.video = JSON.parse(result.video);
+			if (result.video && result.video.url) {
+				result.video.url = config.preUrl.productionUrl + result.video.url;
+				result.video.photo.url = config.preUrl.productionUrl + result.video.photo.url;
+			}
+			if (result.img_url && result.img_url.lenght !== 0) {
+				const img_urls = [];
+				result.img_url.forEach((url) => {
+					img_urls.push(config.preUrl.productionUrl + url);
+				});
+				result.img_url = img_urls;
+			}
+			result.create_time = moment(result.create_time).format('YYYY-MM-DD HH:mm');
 			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);

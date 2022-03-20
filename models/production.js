@@ -23,7 +23,7 @@ module.exports = (sequelize) => {
       comment: "乐器id"
     },
     desc: {
-      type: Sequelize.STRING(500),
+      type: Sequelize.STRING(8000),
       allowNull: true,
       comment: "作品描述"
     },
@@ -38,6 +38,30 @@ module.exports = (sequelize) => {
       allowNull: true,
       defaultValue: "{}",
       comment: "视频详情"
+    },
+    goods_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "点赞数量"
+    },
+    comment_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "评论数量"
+    },
+    share_num: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "分享数量"
+    },
+    hot: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "热度"
     },
     create_time: {
       type: Sequelize.STRING(255),

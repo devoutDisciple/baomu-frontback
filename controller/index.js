@@ -8,6 +8,9 @@ const levelController = require('./levelController');
 const schoolController = require('./schoolController');
 const idcardConroller = require('./idcardConroller');
 const productionController = require('./productionController');
+const videoController = require('./videoController');
+const replyController = require('./replyController');
+const goodsController = require('./goodsController');
 
 const router = (app) => {
 	// 登录相关
@@ -30,5 +33,11 @@ const router = (app) => {
 	app.use('/idcard', idcardConroller);
 	// 作品相关
 	app.use('/production', productionController);
+	// 上传视频
+	app.use('/video', videoController);
+	// 评论相关
+	app.use('/reply', replyController);
+	// 点赞相关
+	app.use('/goods', goodsController);
 };
 module.exports = router;
