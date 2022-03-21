@@ -57,7 +57,7 @@ module.exports = (sequelize) => {
       defaultValue: 0,
       comment: "分享数量"
     },
-    hot: {
+    hot_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 0,

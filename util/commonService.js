@@ -43,9 +43,10 @@ const handleComment = async (comments, user_id) => {
 	const result = responseUtil.renderFieldsAll(comments, [
 		'id',
 		'desc',
-		'goods',
-		'share',
-		'comment',
+		'type',
+		'goods_num',
+		'share_num',
+		'comment_num',
 		'content_id',
 		'comment_id',
 		'img_urls',

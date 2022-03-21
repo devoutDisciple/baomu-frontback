@@ -53,12 +53,12 @@ module.exports = {
 				// 给帖子增加赞 热度 + 1
 				productionModal.increment({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
 				// 用户点赞
-				userModal.increment({ goods: 1 }, { where: { id: user_id } });
+				userModal.increment({ goods_num: 1 }, { where: { id: user_id } });
 			} else {
 				// 给帖子取消赞 热度 - 1
 				productionModal.decrement({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
 				// 用户点赞
-				userModal.decrement({ goods: 1 }, { where: { id: user_id } });
+				userModal.decrement({ goods_num: 1 }, { where: { id: user_id } });
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
@@ -118,18 +118,18 @@ module.exports = {
 			}
 			if (goods_type) {
 				// 评论的点赞 + 1
-				commentRecordModal.increment({ goods: config.GOODS_INTEGRAL }, { where: { id: comment_id } });
+				await commentRecordModal.increment({ goods_num: 1 }, { where: { id: comment_id } });
 				// 帖子热度 + 1
-				productionModal.increment({ hot: config.GOODS_INTEGRAL }, { where: { id: content_id } });
+				await productionModal.increment({ hot_num: 1 }, { where: { id: content_id } });
 				// 用户点赞数量 + 1
-				userModal.increment({ goods: config.GOODS_INTEGRAL, integral: config.GOODS_INTEGRAL }, { where: { id: user_id } });
+				await userModal.increment({ goods_num: 1 }, { where: { id: user_id } });
 			} else {
 				// 评论的点赞 + 1
-				commentRecordModal.decrement({ goods: config.GOODS_INTEGRAL }, { where: { id: comment_id } });
+				await commentRecordModal.decrement({ goods_num: 1 }, { where: { id: comment_id } });
 				// 帖子热度 - 1
-				productionModal.decrement({ hot: config.GOODS_INTEGRAL }, { where: { id: content_id } });
+				await productionModal.decrement({ hot_num: 1 }, { where: { id: content_id } });
 				// 用户点赞数量 - 1
-				userModal.decrement({ goods: config.GOODS_INTEGRAL, integral: config.GOODS_INTEGRAL }, { where: { id: user_id } });
+				await userModal.decrement({ goods_num: 1 }, { where: { id: user_id } });
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {

@@ -40,19 +40,19 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "评论内容"
     },
-    goods: {
+    goods_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 0,
       comment: "点赞数量"
     },
-    share: {
+    share_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 0,
       comment: "分享次数"
     },
-    comment: {
+    comment_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 0,

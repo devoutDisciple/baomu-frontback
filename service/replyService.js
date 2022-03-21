@@ -15,6 +15,8 @@ commentRecordModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id'
 const timeformat = 'YYYY-MM-DD HH:mm';
 const pagesize = 10;
 
+const commonFields = ['id', 'content_id', 'comment_id', 'img_urls', 'type', 'desc', 'goods_num', 'share_num', 'comment_num', 'create_time'];
+
 module.exports = {
 	// 获取内容的全部评论
 	getAllByContentId: async (req, res) => {
@@ -27,7 +29,7 @@ module.exports = {
 					type: 1,
 					is_delete: 1,
 				},
-				attributes: ['id', 'content_id', 'comment_id', 'img_urls', 'type', 'desc', 'goods', 'share', 'comment', 'create_time'],
+				attributes: commonFields,
 				include: [
 					{
 						model: userModal,
@@ -36,15 +38,16 @@ module.exports = {
 					},
 				],
 				order: [
-					['goods', 'DESC'],
-					['comment', 'DESC'],
+					['goods_num', 'DESC'],
+					['comment_num', 'DESC'],
 					['create_time', 'DESC'],
 				],
 				limit: pagesize,
 				offset,
 			});
+			const comments_total = await commentRecordModal.count({ where: { is_delete: 1 } });
 			const result = await handleComment(comments, user_id);
-			res.send(resultMessage.success(result));
+			res.send(resultMessage.success({ list: result, count: comments_total }));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
@@ -65,7 +68,7 @@ module.exports = {
 				create_time: moment().format(timeformat),
 			});
 			// 帖子的评论数量加1
-			await productionModal.increment(['comment_num', 'hot'], { where: { id: content_id } });
+			await productionModal.increment(['comment_num', 'hot_num'], { where: { id: content_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -87,10 +90,9 @@ module.exports = {
 				create_time: moment().format(timeformat),
 			});
 			// 评论的的评论数量 + 1
-			await commentRecordModal.increment(['comment'], { where: { id: comment_id } });
+			await commentRecordModal.increment(['comment_num'], { where: { id: comment_id } });
 			// 帖子的评论数量 + 1, 热度 + 1
-			await productionModal.increment(['comment_num', 'hot'], { where: { id: content_id } });
-
+			await productionModal.increment(['comment_num', 'hot_num'], { where: { id: content_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -104,7 +106,7 @@ module.exports = {
 			const { comment_id, user_id } = req.query;
 			const detail = await commentRecordModal.findOne({
 				where: { id: comment_id, is_delete: 1 },
-				attributes: ['id', 'content_id', 'comment_id', 'img_urls', 'type', 'desc', 'goods', 'share', 'comment', 'create_time'],
+				attributes: commonFields,
 				include: [
 					{
 						model: userModal,
@@ -127,6 +129,7 @@ module.exports = {
 			const { id, user_id } = req.query;
 			const detail = await commentRecordModal.findAll({
 				where: { comment_id: id, is_delete: 1 },
+				attributes: commonFields,
 				include: [
 					{
 						model: userModal,
@@ -135,7 +138,7 @@ module.exports = {
 					},
 				],
 				order: [
-					['goods', 'DESC'],
+					['goods_num', 'DESC'],
 					['create_time', 'DESC'],
 				],
 			});
