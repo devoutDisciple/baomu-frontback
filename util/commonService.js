@@ -14,7 +14,7 @@ commentRecordModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id'
 
 const timeformat = 'YYYY-MM-DD HH:mm';
 
-const handleComment = async (comments, user_id) => {
+const handleComment = async (comments, user_id, goodsType) => {
 	if (!Array.isArray(comments)) return {};
 	let len = comments.length;
 	while (len > 0) {
@@ -36,8 +36,11 @@ const handleComment = async (comments, user_id) => {
 		item.img_urls = imgUrls;
 		// 查询是否点过赞
 		if (item && item.id && user_id) {
-			const goodsDetail = await goodsRecordModal.findOne({ where: { user_id, comment_id: item.id, type: 2 } });
-			if (goodsDetail) item.hadGoods = true;
+			const goodsDetail = await goodsRecordModal.findOne({ where: { user_id, comment_id: item.id, type: goodsType } });
+			if (goodsDetail) {
+				item.hadGoods = true;
+				console.log(item, 111);
+			}
 		}
 	}
 	const result = responseUtil.renderFieldsAll(comments, [

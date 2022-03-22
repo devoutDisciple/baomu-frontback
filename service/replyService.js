@@ -6,6 +6,7 @@ const commentRecord = require('../models/comment_record');
 const user = require('../models/user');
 const production = require('../models/production');
 const { handleComment } = require('../util/commonService');
+const responseUtil = require('../util/responseUtil');
 
 const userModal = user(sequelize);
 const productionModal = production(sequelize);
@@ -45,9 +46,60 @@ module.exports = {
 				limit: pagesize,
 				offset,
 			});
-			const comments_total = await commentRecordModal.count({ where: { is_delete: 1 } });
-			const result = await handleComment(comments, user_id);
+			const comments_total = await commentRecordModal.count({ where: { is_delete: 1, content_id } });
+			const result = await handleComment(comments, user_id, 2);
 			res.send(resultMessage.success({ list: result, count: comments_total }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取评论的评论
+	getReplyListByReplyId: async (req, res) => {
+		try {
+			const { id, user_id } = req.query;
+			const detail = await commentRecordModal.findAll({
+				where: { comment_id: id, type: 2, is_delete: 1 },
+				attributes: commonFields,
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo'],
+					},
+				],
+				order: [
+					['goods_num', 'DESC'],
+					['create_time', 'DESC'],
+				],
+			});
+			let result = responseUtil.renderFieldsAll(detail, [...commonFields, 'userDetail']);
+			result = await handleComment(detail, user_id, 3);
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据id获取评论详情
+	getReplyDetailById: async (req, res) => {
+		try {
+			const { comment_id, user_id } = req.query;
+			const detail = await commentRecordModal.findOne({
+				where: { id: comment_id, is_delete: 1 },
+				attributes: commonFields,
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo'],
+					},
+				],
+			});
+			const result = await handleComment([detail], user_id, 2);
+			res.send(resultMessage.success(result[0] || {}));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
@@ -94,56 +146,6 @@ module.exports = {
 			// 帖子的评论数量 + 1, 热度 + 1
 			await productionModal.increment(['comment_num', 'hot_num'], { where: { id: content_id } });
 			res.send(resultMessage.success('success'));
-		} catch (error) {
-			console.log(error);
-			res.send(resultMessage.error());
-		}
-	},
-
-	// 根据id获取评论详情
-	getReplyDetailById: async (req, res) => {
-		try {
-			const { comment_id, user_id } = req.query;
-			const detail = await commentRecordModal.findOne({
-				where: { id: comment_id, is_delete: 1 },
-				attributes: commonFields,
-				include: [
-					{
-						model: userModal,
-						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
-					},
-				],
-			});
-			const result = await handleComment([detail], user_id);
-			res.send(resultMessage.success(result[0] || {}));
-		} catch (error) {
-			console.log(error);
-			res.send(resultMessage.error());
-		}
-	},
-
-	// 获取评论的评论
-	getReplyListByReplyId: async (req, res) => {
-		try {
-			const { id, user_id } = req.query;
-			const detail = await commentRecordModal.findAll({
-				where: { comment_id: id, is_delete: 1 },
-				attributes: commonFields,
-				include: [
-					{
-						model: userModal,
-						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
-					},
-				],
-				order: [
-					['goods_num', 'DESC'],
-					['create_time', 'DESC'],
-				],
-			});
-			const result = await handleComment(detail, user_id);
-			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

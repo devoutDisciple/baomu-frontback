@@ -326,7 +326,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'username', 'photo', 'integral'],
+						attributes: ['id', 'nickname', 'photo'],
 					},
 				],
 				attributes: goodsFields,
@@ -342,7 +342,7 @@ module.exports = {
 					const currItem = responseUtil.renderFieldsObj(goods[len], goodsFields);
 					currItem.userDetail = responseUtil.renderFieldsObj(goods[len].userDetail || {}, [
 						'id',
-						'username',
+						'nickname',
 						'photo',
 						'integral',
 					]);

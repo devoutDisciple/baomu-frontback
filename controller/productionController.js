@@ -46,4 +46,9 @@ router.get('/detailById', (req, res) => {
 	productionService.getDetailById(req, res);
 });
 
+// 获取作品详情
+router.get('/allProductions', (req, res) => {
+	productionService.getAllProductions(req, res);
+});
+
 module.exports = router;
