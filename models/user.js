@@ -128,6 +128,12 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "详细地址"
     },
+    style_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "擅长风格"
+    },
     desc: {
       type: Sequelize.STRING(255),
       allowNull: true,

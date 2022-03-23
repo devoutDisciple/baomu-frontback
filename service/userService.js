@@ -3,21 +3,43 @@ const sequelize = require('../dataSource/MysqlPoolClass');
 const resultMessage = require('../util/resultMessage');
 const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
+const { getPhotoUrl } = require('../util/userUtil');
 
 const userModal = user(sequelize);
 
 module.exports = {
+	// 上传用户头像
+	uploadFile: async (req, res, filename) => {
+		try {
+			const { user_id, type } = req.body;
+			if (!user) return res.send(resultMessage.error('上传失败'));
+			const params = {};
+			if (Number(type) === 1) {
+				params.photo = filename;
+			}
+			if (Number(type) === 2) {
+				params.bg_url = filename;
+			}
+			await userModal.update(params, { where: { id: user_id } });
+			res.send(resultMessage.success({ url: filename }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
 	// 更新用户基本信息
 	updateInfo: async (req, res) => {
 		try {
-			const { nickname, photo, user_id } = req.body;
-			await userModal.update(
-				{
-					nickname,
-					photo,
-				},
-				{ where: { id: user_id } },
-			);
+			const { nickname, photo, username, style_id, desc, user_id } = req.body;
+			if (!user_id) return res.send(resultMessage.error('系统错误'));
+			const params = {};
+			if (nickname) params.nickname = nickname;
+			if (username) params.username = username;
+			if (photo) params.photo = photo;
+			if (style_id) params.style_id = style_id;
+			if (desc) params.desc = desc;
+			await userModal.update(params, { where: { id: user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -87,6 +109,7 @@ module.exports = {
 	getUserDetail: async (req, res) => {
 		try {
 			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const commonFields = [
 				'id',
 				'username',
@@ -106,13 +129,18 @@ module.exports = {
 				'is_scholl',
 				'is_award',
 				'is_level',
+				'style_id',
 				'desc',
 			];
 			const userDetail = await userModal.findOne({
 				attributes: commonFields,
 				where: { id: user_id },
 			});
-			res.send(resultMessage.success(userDetail));
+			if (!userDetail) return res.send(resultMessage.error('系统错误'));
+			const result = responseUtil.renderFieldsObj(userDetail, commonFields);
+			result.photo = getPhotoUrl(userDetail.photo);
+			result.bg_url = getPhotoUrl(userDetail.bg_url);
+			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

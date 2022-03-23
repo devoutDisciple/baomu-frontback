@@ -12,6 +12,12 @@ module.exports = (sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false
     },
+    type: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "1-作品 2-动态"
+    },
     title: {
       type: Sequelize.STRING(255),
       allowNull: true,

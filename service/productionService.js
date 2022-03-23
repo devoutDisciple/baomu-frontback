@@ -52,7 +52,7 @@ module.exports = {
 	add: async (req, res) => {
 		try {
 			const data = req.body;
-			if (!data.user_id || !data.title || !data.instr_id || !data.desc || !data.img_url || !data.video) {
+			if (!data.user_id || !data.title || !data.instr_id || !data.desc || !data.img_url || !data.video || !data.type) {
 				return res.send(resultMessage.error('系统错误'));
 			}
 			data.img_url = JSON.stringify(data.img_url) || '[]';
@@ -72,7 +72,7 @@ module.exports = {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const lists = await productionModal.findAll({
-				where: { user_id, is_delete: 1 },
+				where: { user_id, type: 1, is_delete: 1 },
 				order: [['create_time', 'DESC']],
 			});
 			if (!lists || lists.lenght === 0) return res.send(resultMessage.success([]));
@@ -153,14 +153,14 @@ module.exports = {
 		}
 	},
 
-	// 分页获取所有作品
+	// 分页获取所有动态
 	getAllProductions: async (req, res) => {
 		try {
 			const { user_id, current = 1 } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const offset = Number((current - 1) * pagesize);
 			const lists = await productionModal.findAll({
-				where: { is_delete: 1 },
+				where: { type: 2, is_delete: 1 },
 				include: [
 					{
 						model: userModal,
