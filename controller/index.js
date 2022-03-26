@@ -11,6 +11,7 @@ const productionController = require('./productionController');
 const videoController = require('./videoController');
 const replyController = require('./replyController');
 const goodsController = require('./goodsController');
+const priceRecordController = require('./priceRecordController');
 
 const router = (app) => {
 	// 登录相关
@@ -39,5 +40,7 @@ const router = (app) => {
 	app.use('/reply', replyController);
 	// 点赞相关
 	app.use('/goods', goodsController);
+	// 报价相关
+	app.use('/priceRecord', priceRecordController);
 };
 module.exports = router;

@@ -46,6 +46,7 @@ module.exports = {
 				limit: pagesize,
 				offset,
 			});
+			console.log(1111);
 			const comments_total = await commentRecordModal.count({ where: { is_delete: 1, content_id } });
 			const result = await handleComment(comments, user_id, 2);
 			res.send(resultMessage.success({ list: result, count: comments_total }));

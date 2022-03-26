@@ -13,4 +13,14 @@ router.get('/demandByAddress', (req, res) => {
 	demandService.getDemandByAddress(req, res);
 });
 
+// 获取需求详情
+router.get('/detailById', (req, res) => {
+	demandService.getDetailById(req, res);
+});
+
+// 直接报名需求
+router.post('/signDemand', (req, res) => {
+	demandService.signDemand(req, res);
+});
+
 module.exports = router;

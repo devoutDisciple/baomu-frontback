@@ -13,6 +13,11 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "发布人id"
     },
+    join_ids: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "参与竞价的人的id,用逗号分开"
+    },
     title: {
       type: Sequelize.STRING(255),
       allowNull: true,
@@ -88,7 +93,13 @@ module.exports = (sequelize) => {
       type: Sequelize.STRING(255),
       allowNull: true,
       defaultValue: "0",
-      comment: "演出费用"
+      comment: "用户设置的演出费用"
+    },
+    state: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "1-开始状态 2-竞价进行中 3-需求进行中（必须已支付） 4-交易成功 5-交易失败 6-交易取消"
     },
     create_time: {
       type: Sequelize.DATE,
