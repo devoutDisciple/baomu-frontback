@@ -170,7 +170,52 @@ module.exports = {
 			}
 			// 更新需求的报价人员id
 			await demandModal.update({ join_ids: joinArr.join(',') }, { where: { id } });
+			// 创建报名记录
+			await priceRecordModal.create({
+				user_id,
+				demand_id: id,
+				type: 1,
+				state: 4,
+				create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+			});
 			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 查询个人演出记录获取需求
+	getDemandByUserId: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			const statement = `SELECT demand.id, demand.user_id, demand.join_ids, demand.title, demand.play_id, 
+            demand.instrument_id, demand.addressName, demand.price, demand.state, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
+            FROM demand AS demand LEFT OUTER JOIN user AS userDetail ON demand.user_id = userDetail.id 
+            WHERE FIND_IN_SET(${user_id}, join_ids) or user_id = ${user_id} ORDER BY demand.create_time DESC;`;
+			const demands = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
+			const result = [];
+			if (demands && demands.length !== 0) {
+				let len = demands.length;
+				while (len > 0) {
+					len -= 1;
+					const curItem = { ...demands[len] };
+					curItem.userPhoto = getPhotoUrl(curItem.userPhoto);
+					curItem.create_time = moment(curItem.create_time).format('YYYY.MM.dDD');
+					curItem.detailState = 1;
+					const curPrice = await priceRecordModal.findAll({
+						where: { user_id, demand_id: curItem.id },
+						order: [['create_time', 'DESC']],
+						limit: 1,
+					});
+					if (curPrice && curPrice[0]) {
+						const pricesItem = responseUtil.renderFieldsObj(curPrice[0], ['id', 'state', 'create_time']);
+						curItem.detailState = pricesItem.state + 1;
+					}
+					result.unshift(curItem);
+				}
+			}
+			res.send(resultMessage.success(result || []));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

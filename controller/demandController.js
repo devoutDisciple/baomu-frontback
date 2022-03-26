@@ -23,4 +23,9 @@ router.post('/signDemand', (req, res) => {
 	demandService.signDemand(req, res);
 });
 
+// 查询个人演出记录获取需求
+router.get('/demandByUserId', (req, res) => {
+	demandService.getDemandByUserId(req, res);
+});
+
 module.exports = router;
