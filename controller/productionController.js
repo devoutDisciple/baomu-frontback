@@ -36,7 +36,7 @@ router.post('/add', (req, res) => {
 	productionService.add(req, res);
 });
 
-// 获取用户作品
+// 获取用户作品或者动态
 router.get('/allByUserId', (req, res) => {
 	productionService.getAllByUserId(req, res);
 });

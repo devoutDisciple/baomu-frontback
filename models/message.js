@@ -37,7 +37,7 @@ module.exports = (sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 1,
-      comment: "1-文字 2-图片"
+      comment: "1-用户消息 2-系统通知 3-订单推送信息 4-邀请信息"
     },
     create_time: {
       type: Sequelize.DATE,

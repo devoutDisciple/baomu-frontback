@@ -69,10 +69,10 @@ module.exports = {
 	// 获取用户作品
 	getAllByUserId: async (req, res) => {
 		try {
-			const { user_id } = req.query;
+			const { user_id, type } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const lists = await productionModal.findAll({
-				where: { user_id, type: 1, is_delete: 1 },
+				where: { user_id, type, is_delete: 1 },
 				order: [['create_time', 'DESC']],
 			});
 			if (!lists || lists.lenght === 0) return res.send(resultMessage.success([]));

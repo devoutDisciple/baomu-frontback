@@ -13,6 +13,8 @@ const demandModal = demand(sequelize);
 
 demandModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id', as: 'userDetail' });
 
+const pagesize = 10;
+
 module.exports = {
 	// 创建需求
 	addDemand: async (req, res) => {
@@ -35,6 +37,7 @@ module.exports = {
 	// 根据地理位置获取需求
 	getDemandByAddress: async (req, res) => {
 		try {
+			const { current } = req.query;
 			// const commonFields = [
 			// 	'id',
 			// 	'title',
@@ -75,6 +78,7 @@ module.exports = {
 				'play_id',
 				'instrument_id',
 			];
+			const offset = Number(Number(current) * pagesize);
 			const demands = await demandModal.findAll({
 				where: {
 					is_delete: 1,
@@ -88,6 +92,8 @@ module.exports = {
 					},
 				],
 				order: [['create_time', 'DESC']],
+				limit: pagesize,
+				offset,
 			});
 			const result = responseUtil.renderFieldsAll(demands, [...commonFields, 'userDetail']);
 			if (Array.isArray(result) && result.length !== 0) {

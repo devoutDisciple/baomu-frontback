@@ -46,4 +46,9 @@ router.get('/userDetail', (req, res) => {
 	userService.getUserDetail(req, res);
 });
 
+// 获取个人作品
+router.get('/productionList', (req, res) => {
+	userService.getProductionList(req, res);
+});
+
 module.exports = router;

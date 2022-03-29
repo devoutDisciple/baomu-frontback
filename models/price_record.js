@@ -31,7 +31,7 @@ module.exports = (sequelize) => {
     state: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "1-竞标结束 2-竞标进行中被拒绝 3-竞标进行中待商议"
+      comment: "1-竞标结束 2-竞标进行中被拒绝 3-竞标进行中待商议 4-报名中 5-中标"
     },
     operation: {
       type: Sequelize.INTEGER,
