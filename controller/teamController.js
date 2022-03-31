@@ -1,16 +1,39 @@
 const express = require('express');
+const multer = require('multer');
+const config = require('../config/config');
+const ObjectUtil = require('../util/ObjectUtil');
 
 const router = express.Router();
 const teamService = require('../service/teamService');
 
-// 获取组团基本信息
-router.get('/teamDetailByTeamUuid', (req, res) => {
-	teamService.getTeamDetailByTeamUuid(req, res);
+let filename = '';
+// 使用硬盘存储模式设置存放接收到的文件的路径以及文件名
+const storage = multer.diskStorage({
+	destination(req, file, cb) {
+		// 接收到文件后输出的保存路径（若不存在则需要创建）
+		cb(null, config.teamPath);
+	},
+	filename(req, file, cb) {
+		// 将保存文件名设置为 随机字符串 + 时间戳名，比如 JFSDJF323423-1342342323.png
+		filename = `${ObjectUtil.getName()}-${Date.now()}.png`;
+		cb(null, filename);
+	},
+});
+const upload = multer({ dest: config.teamPath, storage });
+
+// 上传图片
+router.post('/upload', upload.single('file'), (req, res) => {
+	teamService.uploadFile(req, res, filename);
 });
 
-// 获取组团进度
-router.get('/teamDetailAndProcessByUserid', (req, res) => {
-	teamService.getTeamDetailAndProcessByUserid(req, res);
+// 添加认证
+router.post('/add', (req, res) => {
+	teamService.add(req, res);
+});
+
+// 获取团队列表根据用户id
+router.get('/teamsByUserId', (req, res) => {
+	teamService.getTeamsByUserId(req, res);
 });
 
 module.exports = router;

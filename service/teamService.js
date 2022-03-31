@@ -1,72 +1,139 @@
-const resultMessage = require('../util/resultMessage');
+const moment = require('moment');
 const sequelize = require('../dataSource/MysqlPoolClass');
+const resultMessage = require('../util/resultMessage');
 const team = require('../models/team');
-const order = require('../models/order');
 const user = require('../models/user');
+const production = require('../models/production');
+const ObjectUtil = require('../util/ObjectUtil');
+const mapUtil = require('../util/mapUtil');
+const config = require('../config/config');
 const responseUtil = require('../util/responseUtil');
-const { filterTeamState } = require('../util/filter');
 
+const timeformat = 'YYYY-MM-DD HH:mm:ss';
+
+const productionModal = production(sequelize);
 const userModal = user(sequelize);
-const orderModal = order(sequelize);
 const teamModal = team(sequelize);
 
-orderModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id', as: 'userDetail' });
-
 module.exports = {
-	// 获取组团详情根据team uuid
-	getTeamDetailByTeamUuid: async (req, res) => {
+	// 上传图片
+	uploadFile: async (req, res, filename) => {
 		try {
-			const { team_uuid } = req.query;
-			if (!team_uuid) return res.send(resultMessage.success({}));
-			const data = await teamModal.findOne({
-				where: { uuid: team_uuid, is_delete: 1 },
-			});
-			const result = responseUtil.renderFieldsObj(data, [
-				'id',
-				'uuid',
-				'subject_id',
-				'project_id',
-				'order_ids',
-				'user_ids',
-				'is_starter',
-				'num',
-				'state',
-			]);
-			res.send(resultMessage.success(result));
+			res.send(resultMessage.success({ url: filename }));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
 		}
 	},
 
-	// 获取组团详情
-	getTeamDetailAndProcessByUserid: async (req, res) => {
+	// 添加
+	add: async (req, res) => {
 		try {
-			const { team_uuid } = req.query;
-			if (!team_uuid) return res.send(resultMessage.success({}));
-			const commonTeamFields = ['id', 'order_ids', 'user_ids', 'num', 'state', 'create_time', 'end_time'];
-			const data = await teamModal.findOne({
-				where: { uuid: team_uuid, is_delete: 1 },
-				attributes: commonTeamFields,
+			const { user_id, name, photo, bg_url, team_user_ids, study_id, desc, latitude, longitude } = req.body;
+			if (!user_id || !name || !photo || !bg_url || !team_user_ids || !study_id || !desc || !latitude || !longitude) {
+				return res.send(resultMessage.error('系统错误'));
+			}
+			const { province, city, formatted_address } = await mapUtil.getAddressByCode({ latitude, longitude });
+			const params = {
+				team_uuid: ObjectUtil.getUuid(),
+				user_ids: team_user_ids,
+				ower_id: user_id,
+				name,
+				photo,
+				bg_url,
+				style_id: study_id,
+				desc,
+				latitude,
+				longitude,
+				province,
+				city,
+				address: formatted_address,
+				create_time: moment().format(timeformat),
+			};
+			const result = await teamModal.create(params);
+			console.log(result.id, result.user_ids);
+			const userDetail = await userModal.create({
+				wx_openid: result.team_uuid,
+				nickname: result.name,
+				photo: result.photo,
+				bg_url: result.bg_url,
+				type: 2, // 1-个人  2-团队
+				team_id: result.id,
+				style_id: result.style_id,
+				desc: result.desc,
+				latitude,
+				longitude,
+				province,
+				city,
+				address: formatted_address,
+				create_time: result.create_time,
 			});
-			const teamDetail = responseUtil.renderFieldsObj(data, commonTeamFields);
-			teamDetail.teamState = filterTeamState(teamDetail.state);
-			const order_ids = JSON.parse(teamDetail.order_ids);
-			const orderList = await orderModal.findAll({
-				where: { id: order_ids },
-				order: [['create_time', 'ASC']],
-				attributes: ['user_id', 'type', 'create_time'],
-				include: [
-					{
-						model: userModal,
-						as: 'userDetail',
-						attributes: ['id', 'username', 'photo'],
-					},
-				],
+			await teamModal.update({ user_table_id: userDetail.id }, { where: { id: result.id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取团队列表根据用户id
+	getTeamsByUserId: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.error('系统错误'));
+			const condition = [sequelize.fn('FIND_IN_SET', user_id, sequelize.col('user_ids')), { is_delete: 1 }];
+			const teams = await teamModal.findAll({
+				where: condition,
+				order: [['create_time', 'DESC']],
 			});
-			const result = responseUtil.renderFieldsAll(orderList, ['user_id', 'type', 'create_time', 'userDetail']);
-			teamDetail.orderDtail = result;
-			res.send(resultMessage.success(teamDetail));
+			if (!teams || teams.length === 0) return res.send(resultMessage.success([]));
+			const result = responseUtil.renderFieldsAll(teams, [
+				'id',
+				'user_ids',
+				'ower_id',
+				'user_table_id',
+				'name',
+				'photo',
+				'create_time',
+			]);
+			let len = result.length;
+			const newResult = [];
+			while (len > 0) {
+				len -= 1;
+				const currentItem = result[len];
+				currentItem.photo = config.preUrl.teamUrl + currentItem.photo;
+				currentItem.create_time = moment(currentItem.create_time).format('YYYY.MM.DD');
+				currentItem.user_ids = currentItem.user_ids.split(',');
+				currentItem.person_num = currentItem.user_ids.length;
+				const productionList = await productionModal.findAll({
+					attributes: ['id', 'img_url', 'video'],
+					// type 1-作品 2-动态
+					where: { user_id: currentItem.user_table_id, type: 2 },
+					order: [['create_time', 'DESC']],
+					limit: 3,
+					offset: 0,
+				});
+				let productionImgs = [];
+				if (productionList && productionList.length !== 0) {
+					productionList.forEach((item) => {
+						const img_url = JSON.parse(item.img_url);
+						const videoDetail = JSON.parse(item.video);
+						if (img_url && img_url.length !== 0) {
+							const newImgs = img_url.map((img) => ({ type: 'img', url: `${config.preUrl.productionUrl}${img}` }));
+							productionImgs = [...newImgs, ...productionImgs];
+						}
+						if (videoDetail && Object.keys(videoDetail).length !== 0) {
+							videoDetail.url = config.preUrl.productionUrl + videoDetail.url;
+							videoDetail.photo.url = config.preUrl.productionUrl + videoDetail.photo.url;
+							productionImgs.push({ ...videoDetail, type: 'video' });
+						}
+					});
+				}
+				currentItem.productionImgs = productionImgs;
+				newResult.unshift(currentItem);
+			}
+
+			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

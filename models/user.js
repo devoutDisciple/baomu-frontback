@@ -55,6 +55,17 @@ module.exports = (sequelize) => {
       defaultValue: "5.0",
       comment: "评分"
     },
+    type: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "1-个人 2-乐队"
+    },
+    team_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: "乐队id"
+    },
     comment_num: {
       type: Sequelize.INTEGER,
       allowNull: true,
@@ -135,7 +146,7 @@ module.exports = (sequelize) => {
       comment: "擅长风格"
     },
     desc: {
-      type: Sequelize.STRING(255),
+      type: Sequelize.STRING(800),
       allowNull: true,
       comment: "个人签名"
     },
