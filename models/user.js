@@ -20,7 +20,8 @@ module.exports = (sequelize) => {
     },
     username: {
       type: Sequelize.STRING(255),
-      allowNull: true
+      allowNull: true,
+      comment: "真实姓名"
     },
     photo: {
       type: Sequelize.STRING(255),

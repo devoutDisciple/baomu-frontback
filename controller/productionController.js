@@ -56,4 +56,9 @@ router.get('/allProductionsByUserid', (req, res) => {
 	productionService.getAllProductionsByUserId(req, res);
 });
 
+// 获取团队的一个动态和一个作品
+router.get('/teamOneProductions', (req, res) => {
+	productionService.getOneTeamProductions(req, res);
+});
+
 module.exports = router;

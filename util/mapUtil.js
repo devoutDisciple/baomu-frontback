@@ -11,7 +11,9 @@ const getAddressByCode = ({ longitude, latitude }) => {
 				}
 				const result = JSON.parse(body);
 				if (Number(result.status) === 1 && result.info === 'OK' && result.regeocode) {
-					const { province, city } = result.regeocode.addressComponent;
+					// eslint-disable-next-line prefer-const
+					let { province, city } = result.regeocode.addressComponent;
+					if (Array.isArray(city)) city = province;
 					const { formatted_address } = result.regeocode;
 					if (!province || !city || !formatted_address) reject();
 					resolve({ province, city, formatted_address });

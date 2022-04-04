@@ -36,4 +36,14 @@ router.get('/teamsByUserId', (req, res) => {
 	teamService.getTeamsByUserId(req, res);
 });
 
+// 根据用户id获取团队成员
+router.get('/teamsUsersByTeamId', (req, res) => {
+	teamService.getTeamsUsersByTeamId(req, res);
+});
+
+// 根据team_user_id更新状态 updateTeamUserState
+router.post('/deleteTeamUser', (req, res) => {
+	teamService.deleteTeamUser(req, res);
+});
+
 module.exports = router;

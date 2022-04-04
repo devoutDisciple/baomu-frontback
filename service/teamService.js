@@ -4,16 +4,21 @@ const resultMessage = require('../util/resultMessage');
 const team = require('../models/team');
 const user = require('../models/user');
 const production = require('../models/production');
+const teamUser = require('../models/team_user');
 const ObjectUtil = require('../util/ObjectUtil');
 const mapUtil = require('../util/mapUtil');
 const config = require('../config/config');
 const responseUtil = require('../util/responseUtil');
+const { getPhotoUrl } = require('../util/userUtil');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
+const teamUserModal = teamUser(sequelize);
 const productionModal = production(sequelize);
 const userModal = user(sequelize);
 const teamModal = team(sequelize);
+
+teamUserModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id', as: 'userDetail' });
 
 module.exports = {
 	// 上传图片
@@ -26,13 +31,14 @@ module.exports = {
 		}
 	},
 
-	// 添加
+	// 创建团队
 	add: async (req, res) => {
 		try {
 			const { user_id, name, photo, bg_url, team_user_ids, study_id, desc, latitude, longitude } = req.body;
 			if (!user_id || !name || !photo || !bg_url || !team_user_ids || !study_id || !desc || !latitude || !longitude) {
 				return res.send(resultMessage.error('系统错误'));
 			}
+			const team_users = team_user_ids.split(',');
 			const { province, city, formatted_address } = await mapUtil.getAddressByCode({ latitude, longitude });
 			const params = {
 				team_uuid: ObjectUtil.getUuid(),
@@ -50,25 +56,52 @@ module.exports = {
 				address: formatted_address,
 				create_time: moment().format(timeformat),
 			};
-			const result = await teamModal.create(params);
-			console.log(result.id, result.user_ids);
+			// 创建团队
+			const teamDetail = await teamModal.create(params);
+			// 创建用户
 			const userDetail = await userModal.create({
-				wx_openid: result.team_uuid,
-				nickname: result.name,
-				photo: result.photo,
-				bg_url: result.bg_url,
+				wx_openid: teamDetail.team_uuid,
+				nickname: teamDetail.name,
+				photo: teamDetail.photo,
+				bg_url: teamDetail.bg_url,
 				type: 2, // 1-个人  2-团队
-				team_id: result.id,
-				style_id: result.style_id,
-				desc: result.desc,
+				team_id: teamDetail.id,
+				style_id: teamDetail.style_id,
+				desc: teamDetail.desc,
 				latitude,
 				longitude,
 				province,
 				city,
 				address: formatted_address,
-				create_time: result.create_time,
+				create_time: teamDetail.create_time,
 			});
-			await teamModal.update({ user_table_id: userDetail.id }, { where: { id: result.id } });
+			// 更新团队表
+			await teamModal.update({ user_table_id: userDetail.id }, { where: { id: teamDetail.id } });
+			if (Array.isArray(team_users)) {
+				const teamParams = [];
+				team_users.forEach((item) => {
+					const flag = Number(item) === Number(user_id);
+					const time = moment().format('YYYY-MM-DD HH:mm:ss');
+					const obj = {
+						user_id: item,
+						team_id: teamDetail.id,
+						user_table_id: userDetail.id,
+						// 乐队的担当 位置
+						type: -1,
+						// 1-未参与(邀请阶段) 2-参与 3-已经拒绝,如果是队长，默认参加
+						state: flag ? 2 : 1,
+						// 是否是拥有者 1-是 2-不是
+						is_owner: flag ? 1 : 2,
+						create_time: time,
+					};
+					if (flag) {
+						obj.join_time = time;
+					}
+					teamParams.push(obj);
+				});
+				// 批量创建队员
+				await teamUserModal.bulkCreate(teamParams);
+			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -134,6 +167,52 @@ module.exports = {
 			}
 
 			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据teamid获取成员列表
+	getTeamsUsersByTeamId: async (req, res) => {
+		try {
+			const { team_id } = req.query;
+			if (!team_id) return res.send(resultMessage.error('系统错误'));
+			const commonFields = ['id', 'user_id', 'type', 'state', 'is_owner', 'join_time', 'create_time'];
+			const teamUserList = await teamUserModal.findAll({
+				where: { team_id, is_delete: 1 },
+				attributes: commonFields,
+				order: [
+					['join_time', 'DESC'],
+					['create_time', 'DESC'],
+				],
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo'],
+					},
+				],
+			});
+			if (!teamUserList) return res.send(resultMessage.success([]));
+			const newTeamUserList = responseUtil.renderFieldsAll(teamUserList, [...commonFields, 'userDetail']);
+			newTeamUserList.forEach((item) => {
+				item.userDetail.photo = getPhotoUrl(item.userDetail.photo);
+			});
+			res.send(resultMessage.success(newTeamUserList));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 删除参与队员
+	deleteTeamUser: async (req, res) => {
+		try {
+			const { id } = req.body;
+			if (!id) return res.send(resultMessage.error('系统错误'));
+			await teamUserModal.update({ is_delete: 2 }, { where: { id } });
+			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

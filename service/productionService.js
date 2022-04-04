@@ -113,7 +113,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
+						attributes: ['id', 'nickname', 'photo', 'type'],
 					},
 				],
 			});
@@ -143,7 +143,7 @@ module.exports = {
 				result.img_url = img_urls;
 			}
 			if (result.userDetail && result.userDetail.photo) {
-				result.userDetail.photo = getPhotoUrl(result.userDetail.photo);
+				result.userDetail.photo = getPhotoUrl(result.userDetail.photo, result.userDetail.type);
 			}
 			result.create_time = moment(result.create_time).format('YYYY-MM-DD HH:mm');
 			res.send(resultMessage.success(result));
@@ -165,7 +165,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
+						attributes: ['id', 'nickname', 'photo', 'type'],
 					},
 				],
 				order: [['create_time', 'DESC']],
@@ -203,7 +203,80 @@ module.exports = {
 					item.showImg = item.img_url[0];
 				}
 				if (item.userDetail && item.userDetail.photo) {
-					item.userDetail.photo = getPhotoUrl(item.userDetail.photo);
+					item.userDetail.photo = getPhotoUrl(item.userDetail.photo, item.userDetail.type);
+				}
+			});
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 分页获取所有动态
+	getOneTeamProductions: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.error('系统错误'));
+			// 一个作品
+			const production1 = await productionModal.findOne({
+				where: { type: 1, is_delete: 1 },
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo', 'type'],
+					},
+				],
+				order: [['create_time', 'DESC']],
+			});
+			// 一个动态
+			const production2 = await productionModal.findOne({
+				where: { type: 2, is_delete: 1 },
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo', 'type'],
+					},
+				],
+				order: [['create_time', 'DESC']],
+			});
+			const lists = [];
+			if (production1) lists.push(production1);
+			if (production2) lists.push(production2);
+			if (lists.lenght === 0) return res.send(resultMessage.success([]));
+			const result = responseUtil.renderFieldsAll(lists, [
+				'id',
+				'user_id',
+				'title',
+				'desc',
+				'instr_id',
+				'img_url',
+				'video',
+				'userDetail',
+				'create_time',
+			]);
+			result.forEach((item) => {
+				item.create_time = moment(item.create_time).format('YYYY-MM-DD HH:mm');
+				item.img_url = JSON.parse(item.img_url);
+				item.video = JSON.parse(item.video);
+				// {"url":"J4BHYM31VLB7Z3Y8-1647622665497.png","height":260,"width":482,"duration":14.664,"size":2143880,"photo":{"url":"KFF5UR6M8M9ETOAB-1647622665543.png","width":482,"height":260}}
+				if (item.video && item.video.url) {
+					item.video.url = config.preUrl.productionUrl + item.video.url;
+					item.video.photo.url = config.preUrl.productionUrl + item.video.photo.url;
+					item.showImg = item.video.photo.url;
+				}
+				if (item.img_url && item.img_url.lenght !== 0) {
+					const img_urls = [];
+					item.img_url.forEach((url) => {
+						img_urls.push(config.preUrl.productionUrl + url);
+					});
+					item.img_url = img_urls;
+					item.showImg = item.img_url[0];
+				}
+				if (item.userDetail && item.userDetail.photo) {
+					item.userDetail.photo = getPhotoUrl(item.userDetail.photo, item.userDetail.type);
 				}
 			});
 			res.send(resultMessage.success(result));
@@ -225,7 +298,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
+						attributes: ['id', 'nickname', 'photo', 'type'],
 					},
 				],
 				order: [['create_time', 'DESC']],
@@ -263,7 +336,7 @@ module.exports = {
 					item.showImg = item.img_url[0];
 				}
 				if (item.userDetail && item.userDetail.photo) {
-					item.userDetail.photo = getPhotoUrl(item.userDetail.photo);
+					item.userDetail.photo = getPhotoUrl(item.userDetail.photo, item.userDetail.type);
 				}
 			});
 			res.send(resultMessage.success(result));

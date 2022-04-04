@@ -46,6 +46,11 @@ router.get('/userDetail', (req, res) => {
 	userService.getUserDetail(req, res);
 });
 
+// 获取邀请的人的详情
+router.get('/invitationUserDetail', (req, res) => {
+	userService.getInvitationUserDetail(req, res);
+});
+
 // 获取个人作品
 router.get('/productionList', (req, res) => {
 	userService.getProductionList(req, res);

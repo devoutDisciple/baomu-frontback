@@ -21,6 +21,7 @@ var _register = require("./register");
 var _school = require("./school");
 var _skill = require("./skill");
 var _team = require("./team");
+var _team_user = require("./team_user");
 var _user = require("./user");
 var _user_attention_user = require("./user_attention_user");
 var _video = require("./video");
@@ -49,6 +50,7 @@ function initModels(sequelize) {
   var school = _school(sequelize, Sequelize);
   var skill = _skill(sequelize, Sequelize);
   var team = _team(sequelize, Sequelize);
+  var team_user = _team_user(sequelize, Sequelize);
   var user = _user(sequelize, Sequelize);
   var user_attention_user = _user_attention_user(sequelize, Sequelize);
   var video = _video(sequelize, Sequelize);
@@ -78,6 +80,7 @@ function initModels(sequelize) {
     school,
     skill,
     team,
+    team_user,
     user,
     user_attention_user,
     video,

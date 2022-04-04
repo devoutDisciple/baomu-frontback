@@ -86,6 +86,7 @@ module.exports = {
 				'latitude',
 				'province',
 				'city',
+				'type',
 				'address',
 				'grade',
 				'comment_num',
@@ -111,7 +112,7 @@ module.exports = {
 				} else {
 					currentItem.distance = `${Number(currentItem.distance).toFixed(1)}km`;
 				}
-				currentItem.photo = getPhotoUrl(currentItem.photo);
+				currentItem.photo = getPhotoUrl(currentItem.photo, currentItem.type);
 				const productionList = await productionModal.findAll({
 					attributes: ['id', 'img_url', 'video'],
 					// type 1-作品 2-动态
@@ -155,6 +156,8 @@ module.exports = {
 				'id',
 				'username',
 				'nickname',
+				'type',
+				'team_id',
 				'bg_url',
 				'photo',
 				'age',
@@ -179,8 +182,30 @@ module.exports = {
 			});
 			if (!userDetail) return res.send(resultMessage.error('系统错误'));
 			const result = responseUtil.renderFieldsObj(userDetail, commonFields);
-			result.photo = getPhotoUrl(userDetail.photo);
-			result.bg_url = getPhotoUrl(userDetail.bg_url);
+			result.photo = getPhotoUrl(userDetail.photo, result.type);
+			result.bg_url = getPhotoUrl(userDetail.bg_url, result.type);
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取邀请的人的详情
+	getInvitationUserDetail: async (req, res) => {
+		try {
+			const { user_ids } = req.query;
+			if (!user_ids) return res.send(resultMessage.error('系统错误'));
+			const commonFields = ['id', 'username', 'nickname', 'photo', 'type'];
+			const users = await userModal.findAll({
+				attributes: commonFields,
+				where: { id: JSON.parse(user_ids) },
+			});
+			if (!users) return res.send(resultMessage.error('系统错误'));
+			const result = responseUtil.renderFieldsAll(users, commonFields);
+			result.forEach((item) => {
+				item.photo = getPhotoUrl(item.photo, item.type);
+			});
 			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
