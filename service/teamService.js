@@ -218,4 +218,45 @@ module.exports = {
 			res.send(resultMessage.error());
 		}
 	},
+
+	// 根据团队用户id获取信息 getUserDetailByTeamUserId
+	getUserDetailByTeamUserId: async (req, res) => {
+		try {
+			const { team_user_id } = req.query;
+			if (!team_user_id) return res.send(resultMessage.error('系统错误'));
+			const commonFields = ['id', 'user_id', 'type'];
+			const teamUserDetail = await teamUserModal.findOne({
+				where: { id: team_user_id },
+				attributes: commonFields,
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo'],
+					},
+				],
+			});
+			if (!teamUserDetail) return res.send(resultMessage.success([]));
+			const result = responseUtil.renderFieldsObj(teamUserDetail, [...commonFields, 'userDetail']);
+			result.userDetail.photo = getPhotoUrl(result.userDetail.photo);
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据team_user_id修改乐队担当
+	updateUserDetailByTeamUserId: async (req, res) => {
+		try {
+			const { team_user_id, type } = req.body;
+			if (!team_user_id) return res.send(resultMessage.error('系统错误'));
+
+			await teamUserModal.update({ type }, { where: { id: team_user_id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
 };

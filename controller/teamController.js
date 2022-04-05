@@ -41,9 +41,19 @@ router.get('/teamsUsersByTeamId', (req, res) => {
 	teamService.getTeamsUsersByTeamId(req, res);
 });
 
-// 根据team_user_id更新状态 updateTeamUserState
+// 根据team_user_id删除成员
 router.post('/deleteTeamUser', (req, res) => {
 	teamService.deleteTeamUser(req, res);
+});
+
+// 根据team_user_id获取状态
+router.get('/userDetailByTeamUserId', (req, res) => {
+	teamService.getUserDetailByTeamUserId(req, res);
+});
+
+// 根据team_user_id修改乐队担当
+router.post('/updateUserDetailByTeamUserId', (req, res) => {
+	teamService.updateUserDetailByTeamUserId(req, res);
 });
 
 module.exports = router;
