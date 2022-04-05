@@ -77,7 +77,12 @@ module.exports = {
 	// 获取距离该用户最近的人
 	getUserByLocation: async (req, res) => {
 		try {
-			const { user_id, current } = req.query;
+			// onlyPerson 是否只是获取用户
+			const { user_id, current, onlyPerson } = req.query;
+			let personParams = '';
+			if (onlyPerson) {
+				personParams = 'and type = 1';
+			}
 			const commonFields = [
 				'id',
 				'nickname',
@@ -96,7 +101,7 @@ module.exports = {
 			const userDetail = await userModal.findOne({ where: { id: user_id } });
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
-			FROM user where id != ${user_id} ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
+			FROM user where id != ${user_id} ${personParams} ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			if (!result || result.length === 0) return res.send(resultMessage.success([]));

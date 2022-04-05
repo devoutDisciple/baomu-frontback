@@ -113,7 +113,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo', 'type'],
+						attributes: ['id', 'nickname', 'photo', 'type', 'is_name', 'is_scholl', 'is_level', 'is_award'],
 					},
 				],
 			});
@@ -165,7 +165,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo', 'type'],
+						attributes: ['id', 'nickname', 'photo', 'type', 'is_name', 'is_scholl', 'is_level', 'is_award'],
 					},
 				],
 				order: [['create_time', 'DESC']],
@@ -176,6 +176,7 @@ module.exports = {
 			const result = responseUtil.renderFieldsAll(lists, [
 				'id',
 				'user_id',
+				'type',
 				'title',
 				'desc',
 				'instr_id',
@@ -214,30 +215,31 @@ module.exports = {
 	},
 
 	// 分页获取所有动态
-	getOneTeamProductions: async (req, res) => {
+	getTeamOneProductions: async (req, res) => {
 		try {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
+			const userCommonFields = ['id', 'nickname', 'photo', 'type', 'is_name', 'is_scholl', 'is_level', 'is_award'];
 			// 一个作品
 			const production1 = await productionModal.findOne({
-				where: { type: 1, is_delete: 1 },
+				where: { type: 1, user_id, is_delete: 1 },
 				include: [
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo', 'type'],
+						attributes: userCommonFields,
 					},
 				],
 				order: [['create_time', 'DESC']],
 			});
 			// 一个动态
 			const production2 = await productionModal.findOne({
-				where: { type: 2, is_delete: 1 },
+				where: { type: 2, user_id, is_delete: 1 },
 				include: [
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo', 'type'],
+						attributes: userCommonFields,
 					},
 				],
 				order: [['create_time', 'DESC']],
@@ -249,6 +251,7 @@ module.exports = {
 			const result = responseUtil.renderFieldsAll(lists, [
 				'id',
 				'user_id',
+				'type',
 				'title',
 				'desc',
 				'instr_id',

@@ -183,8 +183,8 @@ module.exports = {
 				where: { team_id, is_delete: 1 },
 				attributes: commonFields,
 				order: [
-					['join_time', 'DESC'],
-					['create_time', 'DESC'],
+					['join_time', 'ASC'],
+					['create_time', 'ASC'],
 				],
 				include: [
 					{
@@ -209,9 +209,15 @@ module.exports = {
 	// 删除参与队员
 	deleteTeamUser: async (req, res) => {
 		try {
-			const { id } = req.body;
-			if (!id) return res.send(resultMessage.error('系统错误'));
-			await teamUserModal.update({ is_delete: 2 }, { where: { id } });
+			const { team_user_id, user_id, team_id } = req.body;
+			if (!team_user_id || !user_id || !team_id) return res.send(resultMessage.error('系统错误'));
+			const teamDetail = await teamModal.findOne({ where: { id: team_id } });
+			const user_arr = teamDetail.user_ids.split(',');
+			const new_user_ids = user_arr.filter((item) => Number(item) !== Number(user_id)).join(',');
+			// 从team表中删除该成员
+			await teamModal.update({ user_ids: new_user_ids }, { where: { id: team_id } });
+			// 更新队员表
+			await teamUserModal.update({ is_delete: 2 }, { where: { id: team_user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -219,7 +225,7 @@ module.exports = {
 		}
 	},
 
-	// 根据团队用户id获取信息 getUserDetailByTeamUserId
+	// 根据团队用户id获取信息
 	getUserDetailByTeamUserId: async (req, res) => {
 		try {
 			const { team_user_id } = req.query;
@@ -253,6 +259,73 @@ module.exports = {
 			if (!team_user_id) return res.send(resultMessage.error('系统错误'));
 
 			await teamUserModal.update({ type }, { where: { id: team_user_id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据乐队id查询详情
+	getDetailByTeamId: async (req, res) => {
+		try {
+			const { team_id } = req.query;
+			if (!team_id) return res.send(resultMessage.error('系统错误'));
+			const result = await teamModal.findOne({ where: { id: team_id } });
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 添加乐队新成员
+	addNewTeamUser: async (req, res) => {
+		try {
+			const { userIds, team_id } = req.body;
+			if (!userIds || userIds.length === 0) return res.send(resultMessage.success('success'));
+			if (!team_id) return res.send(resultMessage.error('系统错误'));
+			const teamDetail = await teamModal.findOne({ where: { id: team_id } });
+			if (!teamDetail) return res.send(resultMessage.error('系统错误'));
+			const user_ids = teamDetail.user_ids;
+			const user_ids_arr = user_ids.split(',');
+			// 去重
+			const newUser_ids = Array.from(new Set([...user_ids_arr, ...userIds])).join(',');
+			// 更新团队队员列表
+			await teamModal.update({ user_ids: newUser_ids }, { where: { id: team_id } });
+			const teamParams = [];
+			if (Array.isArray(userIds)) {
+				userIds.forEach((item) => {
+					teamParams.push({
+						user_id: item,
+						team_id,
+						user_table_id: teamDetail.user_table_id,
+						// 乐队的担当 位置
+						type: -1,
+						// 1-未参与(邀请阶段) 2-参与 3-已经拒绝,如果是队长，默认参加
+						state: 1,
+						// 是否是拥有者 1-是 2-不是
+						is_owner: 2,
+						create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+					});
+				});
+			}
+			// 批量创建队员
+			await teamUserModal.bulkCreate(teamParams);
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 编辑乐队信息
+	updateTeamDetail: async (req, res) => {
+		try {
+			const { user_id, team_id, params } = req.body;
+			if (!user_id || !team_id) return res.send(resultMessage.error('系统错误'));
+			await teamModal.update(params, { where: { id: team_id } });
+			await userModal.update(params, { where: { id: user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

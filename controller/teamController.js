@@ -26,7 +26,7 @@ router.post('/upload', upload.single('file'), (req, res) => {
 	teamService.uploadFile(req, res, filename);
 });
 
-// 添加认证
+// 创建团队
 router.post('/add', (req, res) => {
 	teamService.add(req, res);
 });
@@ -54,6 +54,21 @@ router.get('/userDetailByTeamUserId', (req, res) => {
 // 根据team_user_id修改乐队担当
 router.post('/updateUserDetailByTeamUserId', (req, res) => {
 	teamService.updateUserDetailByTeamUserId(req, res);
+});
+
+// 根据team_id查询team详情
+router.get('/detailByTeamId', (req, res) => {
+	teamService.getDetailByTeamId(req, res);
+});
+
+// 添加乐队成员 addNewTeamUser
+router.post('/addNewTeamUser', (req, res) => {
+	teamService.addNewTeamUser(req, res);
+});
+
+// 编辑乐队信息
+router.post('/updateTeamDetail', (req, res) => {
+	teamService.updateTeamDetail(req, res);
 });
 
 module.exports = router;
