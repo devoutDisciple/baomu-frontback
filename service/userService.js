@@ -95,13 +95,14 @@ module.exports = {
 				'address',
 				'grade',
 				'comment_num',
+				'is_name',
 			];
 			const offset = Number(Number(current) * pagesize);
 			const selctFields = commonFields.join(',');
 			const userDetail = await userModal.findOne({ where: { id: user_id } });
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
-			FROM user where id != ${user_id} ${personParams} ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
+			FROM user where id != ${user_id} ${personParams} and is_delete = 1 ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			if (!result || result.length === 0) return res.send(resultMessage.success([]));

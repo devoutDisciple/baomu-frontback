@@ -183,8 +183,8 @@ module.exports = {
 				where: { team_id, is_delete: 1 },
 				attributes: commonFields,
 				order: [
-					['join_time', 'ASC'],
-					['create_time', 'ASC'],
+					['join_time', 'DESC'],
+					['create_time', 'DESC'],
 				],
 				include: [
 					{
@@ -326,6 +326,26 @@ module.exports = {
 			if (!user_id || !team_id) return res.send(resultMessage.error('系统错误'));
 			await teamModal.update(params, { where: { id: team_id } });
 			await userModal.update(params, { where: { id: user_id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 解散乐队
+	cancelTeam: async (req, res) => {
+		try {
+			const { user_id, team_id } = req.body;
+			if (!user_id || !team_id) return res.send(resultMessage.error('系统错误'));
+			// 删除user表中team
+			await userModal.update({ is_delete: 2 }, { where: { id: user_id } });
+			// 删除team表的数据
+			await teamModal.update({ is_delete: 2 }, { where: { id: team_id } });
+			// 跟心team_user的表的数据
+			await teamUserModal.update({ is_delete: 2 }, { where: { team_id } });
+			// 删除作品
+			await productionModal.update({ is_delete: 2 }, { where: { user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

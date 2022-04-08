@@ -4,6 +4,8 @@ const resultMessage = require('../util/resultMessage');
 const demand = require('../models/demand');
 const user = require('../models/user');
 const priceRecord = require('../models/price_record');
+const responseUtil = require('../util/responseUtil');
+const { getPhotoUrl } = require('../util/userUtil');
 
 const priceRecordModal = priceRecord(sequelize);
 const userModal = user(sequelize);
@@ -15,12 +17,14 @@ module.exports = {
 	// 添加报价
 	addPrice: async (req, res) => {
 		try {
-			const { user_id, price, demand_id, type, state, operation } = req.body;
+			const { user_id, publisher_id, price, demand_id, type, state, operation } = req.body;
 			console.log(user_id, price, demand_id);
+			if (!(Number(String(price).trim()) > 0)) return res.send(resultMessage.success('系统错误'));
 			if (!(Number(price) > 0)) return res.send(resultMessage.success('报价输入有误'));
+			if (!user_id || !publisher_id || !price || !demand_id) return res.send(resultMessage.success('系统错误'));
 			const demandDetail = await demandModal.findOne({ where: { id: demand_id } });
-			// 1-开始状态 2-竞价进行中 3-需求进行中（必须已支付） 4-交易成功 5-交易失败 6-交易取消
-			if (!demandDetail || demandDetail.state !== 2) return res.send(resultMessage.success('系统错误'));
+			// 1-竞价进行中 2-竞价结束未支付 3-需求进行中（必须已支付） 4-需求取消  5-交易成功 6-交易失败 7-交易取消
+			if (!demandDetail || demandDetail.state !== 1) return res.send(resultMessage.success('系统错误'));
 			const join_ids = demandDetail.join_ids;
 			let joinArr = [];
 			if (join_ids) {
@@ -29,12 +33,16 @@ module.exports = {
 			if (!joinArr.includes(user_id)) {
 				joinArr.push(user_id);
 			}
+			joinArr = Array.from(new Set(joinArr));
 			// 更新需求的报价人员id
 			await demandModal.update({ join_ids: joinArr.join(',') }, { where: { id: demand_id } });
+			// 将以前该人员的报价设为拒绝
+			await priceRecordModal.update({ state: 3 }, { where: { user_id, demand_id, publisher_id } });
 			// 创建报价记录
 			await priceRecordModal.create({
 				user_id,
 				demand_id,
+				publisher_id,
 				price,
 				type,
 				state,
@@ -42,6 +50,125 @@ module.exports = {
 				create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
 			});
 			// 更新需求的竞价人员
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据需求id获取报价记录
+	getPriceRecordByDemandId: async (req, res) => {
+		try {
+			const { demand_id } = req.query;
+			if (!demand_id) return res.send(resultMessage.success('系统错误'));
+			// const priceRecords = await priceRecordModal.findAll({
+			// 	where: { demand_id },
+			// 	order: [['create_time', 'ASC']],
+			// 	include: [
+			// 		{
+			// 			model: userModal,
+			// 			as: 'userDetail',
+			// 			attributes: ['id', 'nickname', 'photo'],
+			// 		},
+			// 	],
+			// });
+			const statement = 'select distinct user_id from price_record';
+			const usersList = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
+			const result = [];
+			if (usersList && usersList.length !== 0) {
+				const user_ids = usersList.map((item) => item.user_id);
+				let len = user_ids.length;
+				while (len > 0) {
+					len -= 1;
+					const curUserId = user_ids[len];
+					const price_record_list = await priceRecordModal.findAll({
+						where: { user_id: curUserId },
+						order: [['create_time', 'ASC']],
+					});
+					const priceList = responseUtil.renderFieldsAll(price_record_list, [
+						'id',
+						'publisher_id',
+						'demand_id',
+						'price',
+						'type',
+						'state',
+						'create_time',
+					]);
+					priceList.forEach((item) => {
+						item.create_time = moment(item.create_time).format('YYYY.MM.DD HH:mm');
+					});
+					let userDetail = await userModal.findOne({
+						where: { id: curUserId },
+						attributes: ['id', 'nickname', 'photo'],
+					});
+					userDetail = responseUtil.renderFieldsObj(userDetail, ['id', 'nickname', 'photo']);
+					userDetail.photo = getPhotoUrl(userDetail.photo);
+					result.unshift({
+						userDetail,
+						records: priceList,
+					});
+				}
+			}
+			console.log(result, 222);
+			// 更新需求的竞价人员
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取用户的报价详情
+	getPriceRecordByUserId: async (req, res) => {
+		try {
+			const { user_id, demand_id } = req.query;
+			if (!demand_id) return res.send(resultMessage.success('系统错误'));
+			const priceRecords = await priceRecordModal.findAll({
+				where: { user_id, demand_id },
+				order: [['create_time', 'ASC']],
+			});
+			const result = responseUtil.renderFieldsAll(priceRecords, [
+				'id',
+				'publisher_id',
+				'demand_id',
+				'price',
+				'type',
+				'state',
+				'create_time',
+			]);
+			console.log(result, 222);
+			// 更新需求的竞价人员
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 接受报价
+	acceptPrice: async (req, res) => {
+		try {
+			const { id, demand_id } = req.body;
+			if (!id || !demand_id) return res.send(resultMessage.success('系统错误'));
+			// 更新此需求所有报价记录为拒绝
+			await priceRecordModal.update({ state: 3 }, { where: { demand_id } });
+			// 更新此条记录为接受报价
+			await priceRecordModal.update({ state: 4 }, { where: { id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 拒绝报价
+	refusePrice: async (req, res) => {
+		try {
+			const { id } = req.body;
+			if (!id) return res.send(resultMessage.success('系统错误'));
+			// 更新此条记录为拒绝
+			await priceRecordModal.update({ state: 3 }, { where: { id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

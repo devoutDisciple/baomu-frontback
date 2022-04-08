@@ -71,4 +71,9 @@ router.post('/updateTeamDetail', (req, res) => {
 	teamService.updateTeamDetail(req, res);
 });
 
+// 解散乐队
+router.post('/cancelTeam', (req, res) => {
+	teamService.cancelTeam(req, res);
+});
+
 module.exports = router;

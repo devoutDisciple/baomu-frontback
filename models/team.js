@@ -77,16 +77,16 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "个人签名"
     },
+    create_time: {
+      type: Sequelize.DATE,
+      allowNull: true,
+      comment: "创建时间"
+    },
     is_delete: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 1,
       comment: "1-存在 2-删除"
-    },
-    create_time: {
-      type: Sequelize.DATE,
-      allowNull: true,
-      comment: "创建时间"
     }
   }, {
     sequelize,

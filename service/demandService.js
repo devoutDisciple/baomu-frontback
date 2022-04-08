@@ -82,6 +82,7 @@ module.exports = {
 			const demands = await demandModal.findAll({
 				where: {
 					is_delete: 1,
+					state: 1, // 1-竞价进行中 2-竞价结束未支付 3-需求进行中（必须已支付） 4-需求取消  5-交易成功 6-交易失败 7-交易取消
 				},
 				attributes: commonFields,
 				include: [
@@ -144,11 +145,12 @@ module.exports = {
 				order: [['create_time', 'DESC']],
 				limit: 1,
 			});
-			// detailState: 1-未参与报价 2-竞标结束 3-竞标进行中被拒绝 4-竞标进行中待商议
+			// 由于是个人查看，所以状态跟着报价状态走
+			// detailState: 1-未参与竞标 2-竞标进行中待商议 3-被拒绝  4-中标
 			detail.detailState = 1;
 			if (prices && prices[0]) {
 				const pricesItem = responseUtil.renderFieldsObj(prices[0], ['id', 'state', 'create_time']);
-				detail.detailState = pricesItem.state + 1;
+				detail.detailState = pricesItem.state;
 			}
 			res.send(resultMessage.success(detail || {}));
 		} catch (error) {
@@ -191,14 +193,24 @@ module.exports = {
 		}
 	},
 
-	// 查询个人演出记录获取需求
+	// 查询个人工作记录
 	getDemandByUserId: async (req, res) => {
 		try {
-			const { user_id } = req.query;
+			const { user_id, type } = req.query;
+			// type 1-发布的 2-参与的
+			let where = '';
+			// 我发布的
+			if (Number(type) === 1) {
+				where = `WHERE user_id = ${user_id} `;
+			}
+			// 我参与竞价的
+			if (Number(type) === 2) {
+				where = `WHERE FIND_IN_SET(${user_id}, join_ids) `;
+			}
 			const statement = `SELECT demand.id, demand.user_id, demand.join_ids, demand.title, demand.play_id, 
             demand.instrument_id, demand.addressName, demand.price, demand.state, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
             FROM demand AS demand LEFT OUTER JOIN user AS userDetail ON demand.user_id = userDetail.id 
-            WHERE FIND_IN_SET(${user_id}, join_ids) or user_id = ${user_id} ORDER BY demand.create_time DESC;`;
+            ${where} ORDER BY demand.create_time DESC;`;
 			const demands = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			const result = [];
 			if (demands && demands.length !== 0) {
@@ -208,15 +220,22 @@ module.exports = {
 					const curItem = { ...demands[len] };
 					curItem.userPhoto = getPhotoUrl(curItem.userPhoto);
 					curItem.create_time = moment(curItem.create_time).format('YYYY.MM.dDD');
-					curItem.detailState = 1;
-					const curPrice = await priceRecordModal.findAll({
-						where: { user_id, demand_id: curItem.id },
-						order: [['create_time', 'DESC']],
-						limit: 1,
-					});
-					if (curPrice && curPrice[0]) {
-						const pricesItem = responseUtil.renderFieldsObj(curPrice[0], ['id', 'state', 'create_time']);
-						curItem.detailState = pricesItem.state + 1;
+					const join_ids = curItem.join_ids;
+					if (join_ids) {
+						const userFields = ['id', 'nickname', 'photo'];
+						const join_ids_arr = join_ids.split(',');
+						console.log(join_ids_arr, 23323);
+						let users = await userModal.findAll({
+							where: { id: join_ids_arr },
+							attributes: userFields,
+						});
+						if (users && users.length !== 0) {
+							users = responseUtil.renderFieldsAll(users, userFields);
+							users.forEach((item) => {
+								item.photo = getPhotoUrl(item.photo);
+							});
+							curItem.join_users = users;
+						}
 					}
 					result.unshift(curItem);
 				}

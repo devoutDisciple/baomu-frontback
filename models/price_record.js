@@ -11,7 +11,12 @@ module.exports = (sequelize) => {
     user_id: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "演员id"
+      comment: "参与竞价人的id"
+    },
+    publisher_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: "创建需求人的id"
     },
     demand_id: {
       type: Sequelize.INTEGER,
@@ -31,7 +36,8 @@ module.exports = (sequelize) => {
     state: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      comment: "1-竞标结束 2-竞标进行中被拒绝 3-竞标进行中待商议 4-报名中 5-中标"
+      defaultValue: 1,
+      comment: "1-未参与竞标 2-竞标进行中待商议 3-被拒绝  4-中标"
     },
     operation: {
       type: Sequelize.INTEGER,
