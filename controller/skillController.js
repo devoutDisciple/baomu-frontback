@@ -13,7 +13,7 @@ router.post('/delete', (req, res) => {
 	skillService.deleteBySkillId(req, res);
 });
 
-// 删除技能
+// 获取所有技能技能
 router.get('/all', (req, res) => {
 	skillService.getAll(req, res);
 });

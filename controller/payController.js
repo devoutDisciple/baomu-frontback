@@ -8,9 +8,9 @@ router.get('/paySign', (req, res) => {
 	payService.getPaySign(req, res);
 });
 
-// 支付报名费用
-router.post('/paySignup', (req, res) => {
-	payService.paySignup(req, res);
+// 需求方支付，在议价确定之后，支付订单金额
+router.post('/payByShoper', (req, res) => {
+	payService.payByShoper(req, res);
 });
 
 // 处理微信支付返回接口

@@ -155,6 +155,13 @@ module.exports = {
 			await priceRecordModal.update({ state: 3 }, { where: { demand_id } });
 			// 更新此条记录为接受报价
 			await priceRecordModal.update({ state: 4 }, { where: { id } });
+			// 查询该条报价详情
+			const priceDetail = await priceRecordModal.findOne({ where: { id } });
+			// 更新该条需求的最终确定人和最终价格，以及修改状态为竞价结束待支付
+			await demandModal.update(
+				{ final_user_id: priceDetail.user_id, final_price: priceDetail.price, state: 2 },
+				{ where: { id: demand_id } },
+			);
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

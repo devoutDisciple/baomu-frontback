@@ -99,7 +99,17 @@ module.exports = (sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 1,
-      comment: "1-竞价进行中 2-竞价结束未支付 3-需求进行中（必须已支付） 4-需求取消  5-交易成功 6-交易失败 7-交易取消"
+      comment: "1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功 7-交易取消"
+    },
+    final_user_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: "最终确定人的id"
+    },
+    final_price: {
+      type: Sequelize.STRING(255),
+      allowNull: true,
+      comment: "最终确定价格"
     },
     create_time: {
       type: Sequelize.DATE,

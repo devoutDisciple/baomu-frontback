@@ -212,15 +212,46 @@ module.exports = {
             FROM demand AS demand LEFT OUTER JOIN user AS userDetail ON demand.user_id = userDetail.id 
             ${where} ORDER BY demand.create_time DESC;`;
 			const demands = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
+			// const commonDemandsField = [
+			// 	'id',
+			// 	'user_id',
+			// 	'join_ids',
+			// 	'title',
+			// 	'play_id',
+			// 	'instrument_id',
+			// 	'addressName',
+			// 	'price',
+			// 	'state',
+			// 	'create_time',
+			// 	'username',
+			// 	'userPhoto',
+			// 	'join_users',
+			// 	'playName',
+			// 	'instrumentName',
+			// 	'instrumentUrl',
+			// ];
 			const result = [];
 			if (demands && demands.length !== 0) {
 				let len = demands.length;
 				while (len > 0) {
 					len -= 1;
-					const curItem = { ...demands[len] };
+					const curItem = Object.assign(demands[len], {});
 					curItem.userPhoto = getPhotoUrl(curItem.userPhoto);
 					curItem.create_time = moment(curItem.create_time).format('YYYY.MM.dDD');
 					const join_ids = curItem.join_ids;
+					// 获取当前需求，当前参与人的报价状态，获取最后一条记录
+					const priceRecordDetail = await priceRecordModal.findAll({
+						where: { demand_id: curItem.id, user_id },
+						order: [['create_time', 'DESC']],
+						limit: 1,
+					});
+					if (priceRecordDetail && priceRecordDetail.length !== 0) {
+						curItem.priceState = priceRecordDetail[0].state;
+						// 1-未参与竞标 2-竞标进行中待商议 3-被拒绝  4-中标
+						// 再中标的基础上加上需求状态
+						// curItem.state = Number(priceRecordDetail.state) + Number(curItem.state);
+					}
+					// 查询参与竞价人员的信息
 					if (join_ids) {
 						const userFields = ['id', 'nickname', 'photo'];
 						const join_ids_arr = join_ids.split(',');

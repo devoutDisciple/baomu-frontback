@@ -4,7 +4,6 @@ var _address = require("./address");
 var _album = require("./album");
 var _bg_img = require("./bg_img");
 var _comment_record = require("./comment_record");
-var _content = require("./content");
 var _data = require("./data");
 var _demand = require("./demand");
 var _feedback = require("./feedback");
@@ -13,8 +12,7 @@ var _idcard = require("./idcard");
 var _instrument = require("./instrument");
 var _level = require("./level");
 var _message = require("./message");
-var _notice = require("./notice");
-var _posts = require("./posts");
+var _pay = require("./pay");
 var _price_record = require("./price_record");
 var _production = require("./production");
 var _register = require("./register");
@@ -33,7 +31,6 @@ function initModels(sequelize) {
   var album = _album(sequelize, Sequelize);
   var bg_img = _bg_img(sequelize, Sequelize);
   var comment_record = _comment_record(sequelize, Sequelize);
-  var content = _content(sequelize, Sequelize);
   var data = _data(sequelize, Sequelize);
   var demand = _demand(sequelize, Sequelize);
   var feedback = _feedback(sequelize, Sequelize);
@@ -42,8 +39,7 @@ function initModels(sequelize) {
   var instrument = _instrument(sequelize, Sequelize);
   var level = _level(sequelize, Sequelize);
   var message = _message(sequelize, Sequelize);
-  var notice = _notice(sequelize, Sequelize);
-  var posts = _posts(sequelize, Sequelize);
+  var pay = _pay(sequelize, Sequelize);
   var price_record = _price_record(sequelize, Sequelize);
   var production = _production(sequelize, Sequelize);
   var register = _register(sequelize, Sequelize);
@@ -63,7 +59,6 @@ function initModels(sequelize) {
     album,
     bg_img,
     comment_record,
-    content,
     data,
     demand,
     feedback,
@@ -72,8 +67,7 @@ function initModels(sequelize) {
     instrument,
     level,
     message,
-    notice,
-    posts,
+    pay,
     price_record,
     production,
     register,
