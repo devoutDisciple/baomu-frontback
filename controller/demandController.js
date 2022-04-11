@@ -13,6 +13,11 @@ router.get('/demandByAddress', (req, res) => {
 	demandService.getDemandByAddress(req, res);
 });
 
+// 根据输入框查询需求
+router.get('/deamandByIptValue', (req, res) => {
+	demandService.getDeamandByIptValue(req, res);
+});
+
 // 获取需求详情
 router.get('/detailById', (req, res) => {
 	demandService.getDetailById(req, res);

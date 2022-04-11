@@ -1,3 +1,4 @@
+const Sequelize = require('sequelize');
 const moment = require('moment');
 const { getPhotoUrl } = require('../util/userUtil');
 const sequelize = require('../dataSource/MysqlPoolClass');
@@ -7,6 +8,7 @@ const user = require('../models/user');
 const priceRecord = require('../models/price_record');
 const responseUtil = require('../util/responseUtil');
 
+const Op = Sequelize.Op;
 const priceRecordModal = priceRecord(sequelize);
 const userModal = user(sequelize);
 const demandModal = demand(sequelize);
@@ -37,7 +39,7 @@ module.exports = {
 	// 根据地理位置获取需求
 	getDemandByAddress: async (req, res) => {
 		try {
-			const { current } = req.query;
+			const { current, user_id, address_select, plays_style_id } = req.query;
 			// const commonFields = [
 			// 	'id',
 			// 	'title',
@@ -79,11 +81,21 @@ module.exports = {
 				'instrument_id',
 			];
 			const offset = Number(Number(current) * pagesize);
-			const demands = await demandModal.findAll({
-				where: {
-					is_delete: 1,
-					state: 1, // 1-竞价进行中 2-竞价结束未支付 3-需求进行中（必须已支付） 4-需求取消  5-交易成功 6-交易失败 7-交易取消
+			const where = {
+				state: 1, // 1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功 7-交易取消
+				is_delete: 1,
+				addressAll: {
+					[Op.like]: `%${address_select}%`,
 				},
+				[Op.not]: {
+					user_id,
+				},
+			};
+			if (plays_style_id) {
+				where.play_id = plays_style_id;
+			}
+			const demands = await demandModal.findAll({
+				where,
 				attributes: commonFields,
 				include: [
 					{
@@ -95,6 +107,66 @@ module.exports = {
 				order: [['create_time', 'DESC']],
 				limit: pagesize,
 				offset,
+			});
+			const result = responseUtil.renderFieldsAll(demands, [...commonFields, 'userDetail']);
+			if (Array.isArray(result) && result.length !== 0) {
+				result.forEach((item) => {
+					item.username = item.userDetail.nickname;
+					item.userPhoto = getPhotoUrl(item.userDetail.photo);
+					delete item.userDetail;
+				});
+			}
+			res.send(resultMessage.success(result || []));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据输入框查询需求
+	getDeamandByIptValue: async (req, res) => {
+		try {
+			const { user_id, value } = req.query;
+			const commonFields = [
+				'id',
+				'user_id',
+				'title',
+				'price',
+				'addressName',
+				'start_time',
+				'end_time',
+				'is_bargain',
+				'is_food',
+				'is_send',
+				'play_id',
+				'instrument_id',
+			];
+			const where = {
+				state: 1, // 1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功 7-交易取消
+				is_delete: 1,
+				[Op.or]: {
+					title: {
+						[Op.like]: `%${value}%`,
+					},
+					desc: {
+						[Op.like]: `%${value}%`,
+					},
+				},
+				[Op.not]: {
+					user_id,
+				},
+			};
+			const demands = await demandModal.findAll({
+				where,
+				attributes: commonFields,
+				include: [
+					{
+						model: userModal,
+						as: 'userDetail',
+						attributes: ['id', 'nickname', 'photo'],
+					},
+				],
+				order: [['create_time', 'DESC']],
 			});
 			const result = responseUtil.renderFieldsAll(demands, [...commonFields, 'userDetail']);
 			if (Array.isArray(result) && result.length !== 0) {

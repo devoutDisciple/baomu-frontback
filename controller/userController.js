@@ -41,6 +41,11 @@ router.get('/userByLocation', (req, res) => {
 	userService.getUserByLocation(req, res);
 });
 
+// 获取用户通过输入框搜索
+router.get('/userBySearchValue', (req, res) => {
+	userService.getUserBySearchValue(req, res);
+});
+
 // 获取个人信息详情
 router.get('/userDetail', (req, res) => {
 	userService.getUserDetail(req, res);

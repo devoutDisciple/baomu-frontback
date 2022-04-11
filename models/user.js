@@ -140,6 +140,11 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "详细地址"
     },
+    play_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: "演奏方式"
+    },
     style_id: {
       type: Sequelize.INTEGER,
       allowNull: true,

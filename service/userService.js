@@ -56,18 +56,15 @@ module.exports = {
 		try {
 			const { latitude, longitude, user_id } = req.body;
 			const { province, city, formatted_address } = await mapUtil.getAddressByCode({ latitude, longitude });
-			console.log(province, city, formatted_address, 111);
-			await userModal.update(
-				{
-					latitude,
-					longitude,
-					province,
-					city,
-					address: formatted_address,
-				},
-				{ where: { id: user_id } },
-			);
-			res.send(resultMessage.success('success'));
+			const params = {
+				latitude,
+				longitude,
+				province,
+				city,
+				address: formatted_address,
+			};
+			await userModal.update(params, { where: { id: user_id } });
+			res.send(resultMessage.success(params));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
@@ -78,10 +75,31 @@ module.exports = {
 	getUserByLocation: async (req, res) => {
 		try {
 			// onlyPerson 是否只是获取用户
-			const { user_id, current, onlyPerson } = req.query;
+			const { user_id, current, onlyPerson, address_select, person_style_id, plays_style_id, team_type_id } = req.query;
 			let personParams = '';
-			if (onlyPerson) {
+			let addressParams = '';
+			let personStyleParams = '';
+			let playStyleParams = '';
+			let teamTypeParams = '';
+			// 是否仅仅选择单人还是团队，type 1-个人 2-团队
+			if (onlyPerson && onlyPerson !== 'undefined') {
 				personParams = 'and type = 1';
+			}
+			// 选择的地址
+			if (address_select && address_select !== 'undefined') {
+				addressParams = `and city like '%${address_select}%'`;
+			}
+			// 擅长风格
+			if (person_style_id && person_style_id !== 'undefined') {
+				personStyleParams = `and style_id = ${person_style_id}`;
+			}
+			// 演奏方式
+			if (plays_style_id && plays_style_id !== 'undefined') {
+				playStyleParams = `and play_id = ${plays_style_id}`;
+			}
+			// 乐队类型
+			if (team_type_id && team_type_id !== 'undefined') {
+				teamTypeParams = `and type = ${team_type_id}`;
 			}
 			const commonFields = [
 				'id',
@@ -102,7 +120,85 @@ module.exports = {
 			const userDetail = await userModal.findOne({ where: { id: user_id } });
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
-			FROM user where id != ${user_id} ${personParams} and is_delete = 1 ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
+			FROM user where id != ${user_id} ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} and is_delete = 1 
+            ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
+			console.log(statement, 111);
+			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
+			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
+			if (!result || result.length === 0) return res.send(resultMessage.success([]));
+			const responseResult = responseUtil.renderFieldsAll(result, [...commonFields, 'distance']);
+			let len = responseResult.length;
+			const newResult = [];
+			while (len > 0) {
+				len -= 1;
+				const currentItem = responseResult[len];
+				if (currentItem.distance < 1) {
+					currentItem.distance = `${Number(currentItem.distance * 1000).toFixed(0)}m`;
+					if (currentItem.distance === '0m') currentItem.distance = '100m以内';
+				} else {
+					currentItem.distance = `${Number(currentItem.distance).toFixed(1)}km`;
+				}
+				currentItem.photo = getPhotoUrl(currentItem.photo, currentItem.type);
+				const productionList = await productionModal.findAll({
+					attributes: ['id', 'img_url', 'video'],
+					// type 1-作品 2-动态
+					where: { user_id: currentItem.id, type: 1 },
+					order: [['create_time', 'DESC']],
+					limit: 3,
+					offset: 0,
+				});
+				let productionImgs = [];
+				if (productionList && productionList.length !== 0) {
+					productionList.forEach((item) => {
+						const img_url = JSON.parse(item.img_url);
+						const videoDetail = JSON.parse(item.video);
+						if (img_url && img_url.length !== 0) {
+							const newImgs = img_url.map((img) => ({ type: 'img', url: `${config.preUrl.productionUrl}${img}` }));
+							productionImgs = [...newImgs, ...productionImgs];
+						}
+						if (videoDetail && Object.keys(videoDetail).length !== 0) {
+							videoDetail.url = config.preUrl.productionUrl + videoDetail.url;
+							videoDetail.photo.url = config.preUrl.productionUrl + videoDetail.photo.url;
+							productionImgs.push({ ...videoDetail, type: 'video' });
+						}
+					});
+				}
+				currentItem.productionImgs = productionImgs;
+				newResult.unshift(currentItem);
+			}
+			res.send(resultMessage.success(newResult));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取用户通过输入框搜索
+	getUserBySearchValue: async (req, res) => {
+		try {
+			// onlyPerson 是否只是获取用户
+			const { value, user_id } = req.query;
+			const commonFields = [
+				'id',
+				'nickname',
+				'photo',
+				'longitude',
+				'latitude',
+				'province',
+				'city',
+				'type',
+				'address',
+				'grade',
+				'comment_num',
+				'is_name',
+			];
+			const selctFields = commonFields.join(',');
+			const userDetail = await userModal.findOne({ where: { id: user_id } });
+			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
+            point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
+			FROM user where id != ${user_id} and is_delete = 1 and 
+            (nickname like '%${value}%' or username like '%${value}%' or 'desc' like '%${value}%')
+            ORDER BY distance ASC`;
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			if (!result || result.length === 0) return res.send(resultMessage.success([]));
