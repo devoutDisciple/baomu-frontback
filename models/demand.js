@@ -18,6 +18,12 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: "参与竞价的人的id,用逗号分开"
     },
+    type: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+      comment: "1-发布的需求 2-邀请的需求"
+    },
     title: {
       type: Sequelize.STRING(255),
       allowNull: true,

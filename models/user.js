@@ -60,7 +60,7 @@ module.exports = (sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 1,
-      comment: "1-个人 2-乐队"
+      comment: "1-个人 2-乐队 3-乐团"
     },
     team_id: {
       type: Sequelize.INTEGER,

@@ -73,7 +73,7 @@ module.exports = {
 			// 		},
 			// 	],
 			// });
-			const statement = 'select distinct user_id from price_record';
+			const statement = `select distinct user_id from price_record where demand_id = ${demand_id}`;
 			const usersList = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			const result = [];
 			if (usersList && usersList.length !== 0) {

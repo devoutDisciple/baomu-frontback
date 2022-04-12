@@ -22,13 +22,27 @@ module.exports = {
 	addDemand: async (req, res) => {
 		try {
 			const { body } = req;
-			body.end_time = moment(body.end_time).format('YYYY-MM-DD 23:59:59');
-			body.create_time = moment().format('YYYY-MM-DD HH:mm:ss');
-			if (!body.user_id) return res.send(resultMessage.error('系统错误'));
-			if (typeof body.price !== 'number' || !(Number(body.price) > 0)) {
+			const params = Object.assign(body, {});
+			params.start_time = moment(params.start_time).format('YYYY-MM-DD 00:00:01');
+			params.end_time = moment(params.end_time).format('YYYY-MM-DD 23:59:59');
+			params.create_time = moment().format('YYYY-MM-DD HH:mm:ss');
+			if (!params.user_id) return res.send(resultMessage.error('系统错误'));
+			if (typeof params.price !== 'number' || !(Number(params.price) > 0)) {
 				return res.send(resultMessage.error('金额错误'));
 			}
-			await demandModal.create(body);
+			const demandDetail = await demandModal.create(params);
+			// 邀请的需求，创建一个需求方的报价
+			if (params.type === 2) {
+				await priceRecordModal.create({
+					user_id: params.join_ids,
+					publisher_id: params.user_id,
+					demand_id: demandDetail.id,
+					price: params.price,
+					type: 2, // 1-演员报价 2-需求方报价
+					state: 2,
+					create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+				});
+			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
