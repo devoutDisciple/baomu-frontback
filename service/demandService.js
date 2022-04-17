@@ -284,17 +284,17 @@ module.exports = {
 		try {
 			const { user_id, type } = req.query;
 			// type 1-发布的 2-参与的
-			let where = '';
+			let where = 'where demand.is_delete = 1 ';
 			// 我发布的
 			if (Number(type) === 1) {
-				where = `WHERE user_id = ${user_id} `;
+				where += `and demand.user_id = ${user_id} `;
 			}
 			// 我参与竞价的
 			if (Number(type) === 2) {
-				where = `WHERE FIND_IN_SET(${user_id}, join_ids) `;
+				where += `and FIND_IN_SET(${user_id}, demand.join_ids) `;
 			}
 			const statement = `SELECT demand.id, demand.user_id, demand.join_ids, demand.title, demand.play_id, 
-            demand.instrument_id, demand.addressName, demand.price, demand.state, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
+            demand.instrument_id, demand.addressName, demand.price, demand.state, demand.grade, demand.final_user_id, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
             FROM demand AS demand LEFT OUTER JOIN user AS userDetail ON demand.user_id = userDetail.id 
             ${where} ORDER BY demand.create_time DESC;`;
 			const demands = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
@@ -322,6 +322,9 @@ module.exports = {
 				while (len > 0) {
 					len -= 1;
 					const curItem = Object.assign(demands[len], {});
+					if (curItem.grade) {
+						curItem.grade = Number(curItem.grade).toFixed(1);
+					}
 					curItem.userPhoto = getPhotoUrl(curItem.userPhoto);
 					curItem.create_time = moment(curItem.create_time).format('YYYY.MM.dDD');
 					const join_ids = curItem.join_ids;
@@ -356,6 +359,59 @@ module.exports = {
 					}
 					result.unshift(curItem);
 				}
+			}
+			res.send(resultMessage.success(result || []));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 查看个人当月已被预约需求，档期使用
+	getDemandsByUserMonth: async (req, res) => {
+		try {
+			const { user_id, year, month } = req.query;
+			const start_day = `${year}.${month}.01 00:00:01`;
+			const days = new Date(year, month, 0).getDate();
+			const end_day = `${year}.${month}.${days} 23:59:59`;
+			const commonFields = ['id', 'start_time', 'end_time', 'title'];
+			const demands = await demandModal.findAll({
+				where: {
+					[Op.or]: {
+						start_time: {
+							[Op.and]: {
+								[Op.gte]: start_day,
+								[Op.lte]: end_day,
+							},
+						},
+						end_time: {
+							[Op.and]: {
+								[Op.gte]: start_day,
+								[Op.lte]: end_day,
+							},
+						},
+						[Op.and]: {
+							start_time: {
+								[Op.lte]: start_day,
+							},
+							end_time: {
+								[Op.gte]: end_day,
+							},
+						},
+					},
+					final_user_id: user_id,
+					is_delete: 1,
+				},
+				attributes: commonFields,
+			});
+			const result = responseUtil.renderFieldsAll(demands, commonFields);
+			if (Array.isArray(result) && result.length !== 0) {
+				result.forEach((item) => {
+					item.start_time = moment(item.start_time).format('YYYY-MM-DD');
+					item.show_start_time = moment(item.start_time).format('MM.DD');
+					item.end_time = moment(item.end_time).format('YYYY-MM-DD');
+					item.show_end_time = moment(item.end_time).format('MM.DD');
+				});
 			}
 			res.send(resultMessage.success(result || []));
 		} catch (error) {

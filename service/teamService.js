@@ -352,4 +352,31 @@ module.exports = {
 			res.send(resultMessage.error());
 		}
 	},
+
+	// 乐队成员接受或者拒绝邀请
+	decisionInvitation: async (req, res) => {
+		try {
+			const { user_id, team_id, state } = req.body;
+			if (!user_id || !team_id || !state) return res.send(resultMessage.error('系统错误'));
+			// 更新team_user的表的数据
+			await teamUserModal.update({ state }, { where: { user_id, team_id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 根据团队id和个人id获取个人在乐队信息
+	teamUserDetail: async (req, res) => {
+		try {
+			const { user_id, team_id } = req.query;
+			if (!user_id || !team_id) return res.send(resultMessage.error('系统错误'));
+			const result = await teamUserModal.findOne({ where: { team_id, user_id } });
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
 };

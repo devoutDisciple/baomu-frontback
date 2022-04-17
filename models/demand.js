@@ -101,11 +101,17 @@ module.exports = (sequelize) => {
       defaultValue: "0",
       comment: "用户设置的演出费用"
     },
+    grade: {
+      type: Sequelize.STRING(11),
+      allowNull: true,
+      defaultValue: "0",
+      comment: "评分"
+    },
     state: {
       type: Sequelize.INTEGER,
       allowNull: true,
       defaultValue: 1,
-      comment: "1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功 7-交易取消"
+      comment: "1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功(未评价) 7-交易成功（已评价） 8-交易取消"
     },
     final_user_id: {
       type: Sequelize.INTEGER,

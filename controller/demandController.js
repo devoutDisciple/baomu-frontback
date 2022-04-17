@@ -33,4 +33,9 @@ router.get('/demandByUserId', (req, res) => {
 	demandService.getDemandByUserId(req, res);
 });
 
+// 查看个人当月已被预约需求，档期使用
+router.get('/demandsByUserMonth', (req, res) => {
+	demandService.getDemandsByUserMonth(req, res);
+});
+
 module.exports = router;

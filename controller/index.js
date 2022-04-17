@@ -15,6 +15,7 @@ const priceRecordController = require('./priceRecordController');
 const messageController = require('./messageController');
 const teamController = require('./teamController');
 const payController = require('./payController');
+const demandEvaluateController = require('./demandEvaluateController');
 
 const router = (app) => {
 	// 登录相关
@@ -51,5 +52,7 @@ const router = (app) => {
 	app.use('/team', teamController);
 	// 支付相关
 	app.use('/pay', payController);
+	// 需求评价相关
+	app.use('/demandEvaluate', demandEvaluateController);
 };
 module.exports = router;

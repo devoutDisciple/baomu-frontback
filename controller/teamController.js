@@ -36,7 +36,7 @@ router.get('/teamsByUserId', (req, res) => {
 	teamService.getTeamsByUserId(req, res);
 });
 
-// 根据用户id获取团队成员
+// 根据teamid获取成员列表
 router.get('/teamsUsersByTeamId', (req, res) => {
 	teamService.getTeamsUsersByTeamId(req, res);
 });
@@ -74,6 +74,16 @@ router.post('/updateTeamDetail', (req, res) => {
 // 解散乐队
 router.post('/cancelTeam', (req, res) => {
 	teamService.cancelTeam(req, res);
+});
+
+// 更新乐队成员是否接受邀请
+router.post('/decisionInvitation', (req, res) => {
+	teamService.decisionInvitation(req, res);
+});
+
+// 根据团队id和个人id获取个人在乐队信息
+router.get('/teamUserDetail', (req, res) => {
+	teamService.teamUserDetail(req, res);
 });
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const Sequelize = require('sequelize');
 const moment = require('moment');
 const sizeOf = require('image-size');
 const sequelize = require('../dataSource/MysqlPoolClass');
@@ -7,6 +8,7 @@ const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
 
+const Op = Sequelize.Op;
 const messageModal = message(sequelize);
 const userModal = user(sequelize);
 
@@ -36,9 +38,23 @@ module.exports = {
 	// 获取我收到的信息
 	msgsByUserId: async (req, res) => {
 		try {
-			const { user_id } = req.query;
+			const { user_id, msg_accept_time } = req.query;
 			// 查询所有未读信息
-			const msgs = await messageModal.findAll({ where: { person_id: user_id, is_delete: 1 }, order: [['create_time', 'DESC']] });
+			const msgs = await messageModal.findAll({
+				where: {
+					[Op.or]: {
+						person_id: user_id,
+						[Op.and]: {
+							type: [2, 3, 4],
+							create_time: {
+								[Op.gte]: msg_accept_time,
+							},
+						},
+					},
+					is_delete: 1,
+				},
+				order: [['create_time', 'DESC']],
+			});
 			if (!msgs) return res.send(resultMessage.success([]));
 			// 将所有未读信息设置为已读
 			messageModal.update(

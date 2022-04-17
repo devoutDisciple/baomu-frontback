@@ -6,6 +6,7 @@ var _bg_img = require("./bg_img");
 var _comment_record = require("./comment_record");
 var _data = require("./data");
 var _demand = require("./demand");
+var _demand_evaluate = require("./demand_evaluate");
 var _feedback = require("./feedback");
 var _goods_record = require("./goods_record");
 var _idcard = require("./idcard");
@@ -33,6 +34,7 @@ function initModels(sequelize) {
   var comment_record = _comment_record(sequelize, Sequelize);
   var data = _data(sequelize, Sequelize);
   var demand = _demand(sequelize, Sequelize);
+  var demand_evaluate = _demand_evaluate(sequelize, Sequelize);
   var feedback = _feedback(sequelize, Sequelize);
   var goods_record = _goods_record(sequelize, Sequelize);
   var idcard = _idcard(sequelize, Sequelize);
@@ -61,6 +63,7 @@ function initModels(sequelize) {
     comment_record,
     data,
     demand,
+    demand_evaluate,
     feedback,
     goods_record,
     idcard,
