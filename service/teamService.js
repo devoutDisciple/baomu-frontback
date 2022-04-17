@@ -190,11 +190,16 @@ module.exports = {
 	// 根据teamid获取成员列表
 	getTeamsUsersByTeamId: async (req, res) => {
 		try {
-			const { team_id } = req.query;
+			// type: 1-查询已同意的队员 2-查看已被邀请的成员
+			const { team_id, type } = req.query;
 			if (!team_id) return res.send(resultMessage.error('系统错误'));
 			const commonFields = ['id', 'user_id', 'type', 'state', 'is_owner', 'join_time', 'create_time'];
+			const where = { team_id, is_delete: 1 };
+			if (Number(type) === 1) {
+				where.state = 2;
+			}
 			const teamUserList = await teamUserModal.findAll({
-				where: { team_id, is_delete: 1 },
+				where,
 				attributes: commonFields,
 				order: [
 					['join_time', 'DESC'],
@@ -208,7 +213,7 @@ module.exports = {
 					},
 				],
 			});
-			if (!teamUserList) return res.send(resultMessage.success([]));
+			if (!teamUserList || teamUserList.length === 0) return res.send(resultMessage.success([]));
 			const newTeamUserList = responseUtil.renderFieldsAll(teamUserList, [...commonFields, 'userDetail']);
 			newTeamUserList.forEach((item) => {
 				item.userDetail.photo = getPhotoUrl(item.userDetail.photo);

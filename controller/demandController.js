@@ -38,4 +38,9 @@ router.get('/demandsByUserMonth', (req, res) => {
 	demandService.getDemandsByUserMonth(req, res);
 });
 
+// 查看当前用户可用时段
+router.get('/invitationTime', (req, res) => {
+	demandService.getInvitationTime(req, res);
+});
+
 module.exports = router;

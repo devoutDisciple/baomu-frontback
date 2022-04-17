@@ -429,4 +429,44 @@ module.exports = {
 			res.send(resultMessage.error());
 		}
 	},
+
+	// 查看当前用户的已被邀请时段
+	getInvitationTime: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			const commonFields = ['id', 'start_time', 'end_time'];
+			const start_day = moment().format('YYYY-01-DD 00:00:01');
+			const year = moment(new Date()).format('YYYY');
+			const month = moment(new Date()).format('MM');
+			const days = new Date(year, month, 0).getDate();
+			const end_day = `${year}.${month}.${days} 23:59:59`;
+			const demands = await demandModal.findAll({
+				where: {
+					final_user_id: user_id,
+					is_delete: 1,
+					start_time: {
+						[Op.and]: {
+							[Op.gte]: start_day,
+							[Op.lte]: end_day,
+						},
+					},
+				},
+				attributes: commonFields,
+			});
+			const result = responseUtil.renderFieldsAll(demands, commonFields);
+			if (Array.isArray(result) && result.length !== 0) {
+				result.forEach((item) => {
+					item.start_day = moment(item.start_time).format('MM.DD');
+					item.start_time = moment(item.start_time).format('YYYY-MM-DD');
+					item.end_day = moment(item.end_time).format('MM.DD');
+					item.end_time = moment(item.end_time).format('YYYY-MM-DD');
+					item.invitation_time = `${item.start_day} - ${item.end_day}`;
+				});
+			}
+			res.send(resultMessage.success(result || []));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
 };

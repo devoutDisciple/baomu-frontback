@@ -16,6 +16,7 @@ const messageController = require('./messageController');
 const teamController = require('./teamController');
 const payController = require('./payController');
 const demandEvaluateController = require('./demandEvaluateController');
+const deviceController = require('./deviceController');
 
 const router = (app) => {
 	// 登录相关
@@ -54,5 +55,7 @@ const router = (app) => {
 	app.use('/pay', payController);
 	// 需求评价相关
 	app.use('/demandEvaluate', demandEvaluateController);
+	// 其他相关（摄影棚什么的）
+	app.use('/device', deviceController);
 };
 module.exports = router;
