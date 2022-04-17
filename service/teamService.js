@@ -3,6 +3,7 @@ const sequelize = require('../dataSource/MysqlPoolClass');
 const resultMessage = require('../util/resultMessage');
 const team = require('../models/team');
 const user = require('../models/user');
+const message = require('../models/message');
 const production = require('../models/production');
 const teamUser = require('../models/team_user');
 const ObjectUtil = require('../util/ObjectUtil');
@@ -13,6 +14,7 @@ const { getPhotoUrl } = require('../util/userUtil');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
+const messageModal = message(sequelize);
 const teamUserModal = teamUser(sequelize);
 const productionModal = production(sequelize);
 const userModal = user(sequelize);
@@ -58,7 +60,7 @@ module.exports = {
 			};
 			// 创建团队
 			const teamDetail = await teamModal.create(params);
-			// 创建用户
+			// 在用户表创建用户
 			const userDetail = await userModal.create({
 				wx_openid: teamDetail.team_uuid,
 				nickname: teamDetail.name,
@@ -79,9 +81,18 @@ module.exports = {
 			await teamModal.update({ user_table_id: userDetail.id }, { where: { id: teamDetail.id } });
 			if (Array.isArray(team_users)) {
 				const teamParams = [];
+				const msgParams = [];
 				team_users.forEach((item) => {
 					const flag = Number(item) === Number(user_id);
 					const time = moment().format('YYYY-MM-DD HH:mm:ss');
+					// 邀请信息
+					const msg = {
+						user_id,
+						person_id: item,
+						content: JSON.stringify({ team_id: teamDetail.id }),
+						type: 4,
+						create_time: time,
+					};
 					const obj = {
 						user_id: item,
 						team_id: teamDetail.id,
@@ -98,9 +109,12 @@ module.exports = {
 						obj.join_time = time;
 					}
 					teamParams.push(obj);
+					msgParams.push(msg);
 				});
 				// 批量创建队员
 				await teamUserModal.bulkCreate(teamParams);
+				// 给队员发送邀请信息
+				await messageModal.bulkCreate(msgParams);
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
@@ -294,8 +308,19 @@ module.exports = {
 			// 更新团队队员列表
 			await teamModal.update({ user_ids: newUser_ids }, { where: { id: team_id } });
 			const teamParams = [];
+			const msgParams = [];
+
 			if (Array.isArray(userIds)) {
 				userIds.forEach((item) => {
+					const time = moment().format('YYYY-MM-DD HH:mm:ss');
+					// 创建将要发送的邀请信息
+					msgParams.push({
+						person_id: item,
+						content: JSON.stringify({ team_id: teamDetail.id }),
+						create_time: time,
+						type: 4,
+					});
+					// 创建团队成员
 					teamParams.push({
 						user_id: item,
 						team_id,
@@ -306,12 +331,14 @@ module.exports = {
 						state: 1,
 						// 是否是拥有者 1-是 2-不是
 						is_owner: 2,
-						create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+						create_time: time,
 					});
 				});
 			}
 			// 批量创建队员
 			await teamUserModal.bulkCreate(teamParams);
+			// 给队员发送邀请信息
+			await messageModal.bulkCreate(msgParams);
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

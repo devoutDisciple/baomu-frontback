@@ -4,9 +4,11 @@ const resultMessage = require('../util/resultMessage');
 const demand = require('../models/demand');
 const user = require('../models/user');
 const priceRecord = require('../models/price_record');
+const message = require('../models/message');
 const responseUtil = require('../util/responseUtil');
 const { getPhotoUrl } = require('../util/userUtil');
 
+const messageModal = message(sequelize);
 const priceRecordModal = priceRecord(sequelize);
 const userModal = user(sequelize);
 const demandModal = demand(sequelize);
@@ -18,7 +20,6 @@ module.exports = {
 	addPrice: async (req, res) => {
 		try {
 			const { user_id, publisher_id, price, demand_id, type, state, operation } = req.body;
-			console.log(user_id, price, demand_id);
 			if (!(Number(String(price).trim()) > 0)) return res.send(resultMessage.success('系统错误'));
 			if (!(Number(price) > 0)) return res.send(resultMessage.success('报价输入有误'));
 			if (!user_id || !publisher_id || !price || !demand_id) return res.send(resultMessage.success('系统错误'));
@@ -34,6 +35,7 @@ module.exports = {
 				joinArr.push(user_id);
 			}
 			joinArr = Array.from(new Set(joinArr));
+			const create_time = moment().format('YYYY-MM-DD HH:mm:ss');
 			// 更新需求的报价人员id
 			await demandModal.update({ join_ids: joinArr.join(',') }, { where: { id: demand_id } });
 			// 将以前该人员的报价设为拒绝
@@ -47,8 +49,28 @@ module.exports = {
 				type,
 				state,
 				operation,
-				create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+				create_time,
 			});
+			// 创建推送消息
+			if (type === 1) {
+				// 演员报价,推送给需求方
+				await messageModal.create({
+					person_id: publisher_id,
+					user_id,
+					content: JSON.stringify({ demand_id: demandDetail.id, user_id: publisher_id }),
+					type: 3,
+					create_time,
+				});
+			} else {
+				// 需求方报价,推送给演员
+				await messageModal.create({
+					person_id: user_id,
+					user_id: publisher_id,
+					content: JSON.stringify({ demand_id: demandDetail.id, user_id: publisher_id }),
+					type: 3,
+					create_time,
+				});
+			}
 			// 更新需求的竞价人员
 			res.send(resultMessage.success('success'));
 		} catch (error) {
@@ -83,7 +105,7 @@ module.exports = {
 					len -= 1;
 					const curUserId = user_ids[len];
 					const price_record_list = await priceRecordModal.findAll({
-						where: { user_id: curUserId },
+						where: { user_id: curUserId, demand_id },
 						order: [['create_time', 'ASC']],
 					});
 					const priceList = responseUtil.renderFieldsAll(price_record_list, [
@@ -162,6 +184,27 @@ module.exports = {
 				{ final_user_id: priceDetail.user_id, final_price: priceDetail.price, state: 2 },
 				{ where: { id: demand_id } },
 			);
+			const create_time = moment().format('YYYY-MM-DD HH:mm:ss');
+			// 创建推送消息
+			if (priceDetail.type === 1) {
+				// 需求方同意演员报价, 推送给演员
+				messageModal.create({
+					person_id: priceDetail.user_id,
+					user_id: priceDetail.publisher_id,
+					content: JSON.stringify({ demand_id: priceDetail.demand_id, user_id: priceDetail.publisher_id }),
+					type: 3,
+					create_time,
+				});
+			} else {
+				// 演员同意需求方报价, 推送给需求方
+				messageModal.create({
+					person_id: priceDetail.publisher_id,
+					user_id: priceDetail.user_id,
+					content: JSON.stringify({ demand_id: priceDetail.demand_id, user_id: priceDetail.publisher_id }),
+					type: 3,
+					create_time,
+				});
+			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -176,6 +219,28 @@ module.exports = {
 			if (!id) return res.send(resultMessage.success('系统错误'));
 			// 更新此条记录为拒绝
 			await priceRecordModal.update({ state: 3 }, { where: { id } });
+			const priceDetail = await priceRecordModal.findOne({ where: { id } });
+			const create_time = moment().format('YYYY-MM-DD HH:mm:ss');
+			// 创建推送消息
+			if (priceDetail.type === 1) {
+				// 演员报价,推送给需求方
+				messageModal.create({
+					person_id: priceDetail.publisher_id,
+					user_id: priceDetail.user_id,
+					content: JSON.stringify({ demand_id: priceDetail.demand_id, user_id: priceDetail.publisher_id }),
+					type: 3,
+					create_time,
+				});
+			} else {
+				// 需求方报价,推送给演员
+				messageModal.create({
+					person_id: priceDetail.user_id,
+					user_id: priceDetail.publisher_id,
+					content: JSON.stringify({ demand_id: priceDetail.demand_id, user_id: priceDetail.publisher_id }),
+					type: 3,
+					create_time,
+				});
+			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

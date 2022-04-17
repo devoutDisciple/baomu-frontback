@@ -45,7 +45,7 @@ module.exports = {
 					[Op.or]: {
 						person_id: user_id,
 						[Op.and]: {
-							type: [2, 3, 4],
+							type: 2,
 							create_time: {
 								[Op.gte]: msg_accept_time,
 							},

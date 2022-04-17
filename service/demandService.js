@@ -6,9 +6,11 @@ const resultMessage = require('../util/resultMessage');
 const demand = require('../models/demand');
 const user = require('../models/user');
 const priceRecord = require('../models/price_record');
+const message = require('../models/message');
 const responseUtil = require('../util/responseUtil');
 
 const Op = Sequelize.Op;
+const messageModal = message(sequelize);
 const priceRecordModal = priceRecord(sequelize);
 const userModal = user(sequelize);
 const demandModal = demand(sequelize);
@@ -40,7 +42,15 @@ module.exports = {
 					price: params.price,
 					type: 2, // 1-演员报价 2-需求方报价
 					state: 2,
-					create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+					create_time: params.create_time,
+				});
+				// 创建一个消息推送
+				messageModal.create({
+					person_id: params.join_ids,
+					user_id: params.user_id,
+					content: JSON.stringify({ demand_id: demandDetail.id, user_id: params.user_id }),
+					type: 3,
+					create_time: params.create_time,
 				});
 			}
 			res.send(resultMessage.success('success'));
