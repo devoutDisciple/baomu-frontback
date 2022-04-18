@@ -10,26 +10,27 @@ module.exports = {
 	// 支付
 	pay: async (req, res) => {
 		try {
-			const { money, openid } = req.body;
+			const { openid } = req.body;
 			// 使用框架
 			const pay = new WxPay({
-				appid: config.appid,
-				mchid: config.mchid,
-				publicKey: fs.readFileSync(path.join(__dirname, '../baomupay/apiclient_cert.pem')), // 公钥
-				privateKey: fs.readFileSync(path.join(__dirname, '../baomupay/apiclient_key.pem')), // 秘钥
+				appid: config.wx_appid,
+				mchid: config.wechat_mchid,
+				publicKey: fs.readFileSync(path.join(__dirname, '../wechatPayCert/apiclient_cert.pem')), // 公钥
+				privateKey: fs.readFileSync(path.join(__dirname, '../wechatPayCert/apiclient_key.pem')), // 秘钥
 			});
 			const params = {
 				// 订单编号
 				out_trade_no: `${ObjectUtil.getRandomStr(12)}${new Date().getTime()}`,
 				notify_url: 'https://www.chiangjiaoyu.com/pay',
 				amount: {
-					total: Number(Number(money).toFixed(0)), // 单位分
+					total: Number(Number(1).toFixed(0)), // 单位分
 					currency: 'CNY',
 				},
 				payer: { openid },
 				description: '支付',
 			};
 			let result = await pay.transactions_jsapi(params);
+			console.log(JSON.stringify(result), 1111);
 			result = {
 				timeStamp: parseInt(`${+new Date() / 1000}`, 10).toString(),
 				packageSign: result.package,

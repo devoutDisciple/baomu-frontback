@@ -92,10 +92,23 @@ module.exports = {
 	getAllDevicesByPage: async (req, res) => {
 		try {
 			const { current } = req.query;
+			const commonFields = [
+				'id',
+				'name',
+				'addressName',
+				'price',
+				'grade',
+				'img_urls',
+				'comment_num',
+				'desc',
+				'start_time',
+				'end_time',
+			];
 			const offset = Number((current - 1) * pagesize);
 			const devices = await deviceModal.findAll({
 				where: { is_delete: 1 },
 				order: [['create_time', 'DESC']],
+				attributes: commonFields,
 				include: [
 					{
 						model: userModal,
@@ -107,21 +120,13 @@ module.exports = {
 				offset,
 			});
 			if (!device) res.send(resultMessage.success([]));
-			const result = responseUtil.renderFieldsAll(devices, [
-				'id',
-				'name',
-				'addressName',
-				'price',
-				'grade',
-				'img_urls',
-				'comment_num',
-				'desc',
-				'userDetail',
-			]);
+			const result = responseUtil.renderFieldsAll(devices, [...commonFields, 'userDetail']);
 			result.forEach((item) => {
 				const img_urls = JSON.parse(item.img_urls);
 				item.show_img = config.preUrl.devicenUrl + img_urls[0];
 				item.userDetail.photo = getPhotoUrl(item.userDetail.photo);
+				item.start_time = moment(item.start_time).format('YYYY.MM.DD');
+				item.end_time = moment(item.end_time).format('YYYY.MM.DD');
 				delete item.img_urls;
 			});
 			res.send(resultMessage.success(result || []));

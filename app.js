@@ -14,8 +14,8 @@ const LogMiddleware = require('./middleware/LogMiddleware');
 // require('./schedule');
 
 // 开启ssl证书
-const privateKey = fs.readFileSync(path.join(__dirname, './ssl/7158614_chiangky.com.key'), 'utf8');
-const certificate = fs.readFileSync(path.join(__dirname, './ssl/7158614_chiangky.com.pem'), 'utf8');
+const privateKey = fs.readFileSync(path.join(__dirname, './ssl/7624482_baomust.com.key'), 'utf8');
+const certificate = fs.readFileSync(path.join(__dirname, './ssl/7624482_baomust.com.pem'), 'utf8');
 
 const credentials = {
 	// pfx: pfx, ,
