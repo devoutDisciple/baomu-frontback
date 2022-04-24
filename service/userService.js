@@ -272,7 +272,7 @@ module.exports = {
 				'fans_num',
 				'goods_num',
 				'is_name',
-				'is_scholl',
+				'is_school',
 				'is_award',
 				'is_level',
 				'style_id',

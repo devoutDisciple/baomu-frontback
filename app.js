@@ -1,7 +1,4 @@
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const https = require('https');
 
 const app = express();
 const chalk = require('chalk');
@@ -9,19 +6,8 @@ const cookieParser = require('cookie-parser');
 const sessionParser = require('express-session');
 const config = require('./config/config');
 const controller = require('./controller/index');
-const ChangeLog = require('./middleware/ChangeLog');
 const LogMiddleware = require('./middleware/LogMiddleware');
 // require('./schedule');
-
-// 开启ssl证书
-const privateKey = fs.readFileSync(path.join(__dirname, './ssl/7624482_baomust.com.key'), 'utf8');
-const certificate = fs.readFileSync(path.join(__dirname, './ssl/7624482_baomust.com.pem'), 'utf8');
-
-const credentials = {
-	// pfx: pfx, ,
-	key: privateKey,
-	cert: certificate,
-};
 
 // 解析cookie和session还有body
 app.use(cookieParser()); // 挂载中间件，可以理解为实例化
@@ -46,15 +32,6 @@ app.use(express.json());
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }));
 
-// 改变默认的log
-ChangeLog.changeLog();
-
-// 改变默认的info
-ChangeLog.changeInfo();
-
-// 改变默认的error
-ChangeLog.changeError();
-
 // 自定义日志
 app.use(LogMiddleware);
 
@@ -70,22 +47,6 @@ app.all('*', (req, res, next) => {
 // 路由 controller层
 controller(app);
 
-const httpsServer = https.createServer(credentials, app);
-
-if (config.env !== 'dev') {
-	if (config.port === 443) {
-		// 启动服务器，监听对应的端口
-		httpsServer.listen(config.port, () => {
-			console.log(chalk.yellow(`env: ${config.env}, server is listenning ${config.port}`));
-		});
-	} else {
-		app.listen(config.port, () => {
-			console.log(chalk.yellow(`env: ${config.env}, server is listenning ${config.port}`));
-		});
-	}
-} else {
-	// 监听8888端口
-	app.listen(config.port, () => {
-		console.log(chalk.yellow(`env: ${config.env}, server is listenning ${config.port}`));
-	});
-}
+app.listen(config.port, () => {
+	console.log(chalk.yellow(`env: ${config.env}, server is listenning ${config.port}`));
+});
