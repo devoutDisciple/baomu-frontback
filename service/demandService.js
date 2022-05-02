@@ -63,7 +63,7 @@ module.exports = {
 	// 根据地理位置获取需求
 	getDemandByAddress: async (req, res) => {
 		try {
-			const { current, user_id, address_select, plays_style_id } = req.query;
+			const { current, address_select, plays_style_id } = req.query;
 			// const commonFields = [
 			// 	'id',
 			// 	'title',
@@ -111,9 +111,9 @@ module.exports = {
 				addressAll: {
 					[Op.like]: `%${address_select}%`,
 				},
-				[Op.not]: {
-					user_id,
-				},
+				// [Op.not]: {
+				// 	user_id,
+				// },
 			};
 			if (plays_style_id) {
 				where.play_id = plays_style_id;

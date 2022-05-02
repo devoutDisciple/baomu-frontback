@@ -160,7 +160,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const offset = Number((current - 1) * pagesize);
 			const lists = await productionModal.findAll({
-				where: { type: 2, is_delete: 1 },
+				where: { is_delete: 1 },
 				include: [
 					{
 						model: userModal,
@@ -168,7 +168,10 @@ module.exports = {
 						attributes: ['id', 'nickname', 'photo', 'type', 'is_name', 'is_school', 'is_level', 'is_award'],
 					},
 				],
-				order: [['create_time', 'DESC']],
+				order: [
+					['goods_num', 'DESC'],
+					['create_time', 'DESC'],
+				],
 				limit: pagesize,
 				offset,
 			});
@@ -296,7 +299,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const offset = Number((current - 1) * pagesize);
 			const lists = await productionModal.findAll({
-				where: { type: 2, is_delete: 1, user_id },
+				where: { is_delete: 1, user_id },
 				include: [
 					{
 						model: userModal,

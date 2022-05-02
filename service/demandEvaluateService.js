@@ -60,7 +60,7 @@ module.exports = {
 					{
 						model: userModal,
 						as: 'userDetail',
-						attributes: ['id', 'nickname', 'photo'],
+						attributes: ['id', 'nickname', 'photo', 'type'],
 					},
 				],
 			});
@@ -77,7 +77,7 @@ module.exports = {
 			]);
 			result.forEach((item) => {
 				item.grade = Number(item.grade).toFixed(1);
-				item.userDetail.photo = getPhotoUrl(item.userDetail.photo);
+				item.userDetail.photo = getPhotoUrl(item.userDetail.photo, item.userDetail.type);
 				item.create_time = moment(item.create_time).format('YYYY.MM.DD');
 			});
 			res.send(resultMessage.success(result));
