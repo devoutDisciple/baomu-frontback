@@ -121,7 +121,7 @@ module.exports = {
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
 			FROM user where id != ${user_id} ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} and is_delete = 1 
-            and is_name = 1 and is_school = 1 and is_award = 1 and is_level = 1 
+			and is_name = 1 and is_school = 1 and is_award = 1 and is_level = 1
             ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			console.log(statement, 111);
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;

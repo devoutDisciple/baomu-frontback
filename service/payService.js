@@ -5,6 +5,7 @@ const wechatUtil = require('../util/wechatUtil');
 const config = require('../config/config');
 const demand = require('../models/demand');
 const pay = require('../models/pay');
+const responseUtil = require('../util/responseUtil');
 
 const payModal = pay(sequelize);
 const demandModal = demand(sequelize);
@@ -135,6 +136,60 @@ module.exports = {
 		} catch (error) {
 			console.log(error);
 			return res.send(resultMessage.error('网络出小差了, 请稍后重试'));
+		}
+	},
+
+	// 获取用户的支付记录
+	getAllPayByUserId: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.success([]));
+			const commonFields = ['id', 'pay_type', 'type', 'out_trade_no', 'money', 'create_time'];
+			const payRecords = await payModal.findAll({
+				where: { user_id, is_delete: 1 },
+				attributes: commonFields,
+			});
+			const result = responseUtil.renderFieldsAll(payRecords, commonFields);
+			result.forEach((item) => {
+				item.create_time = moment(item.create_time).format('YYYY-MM-DD HH:mm:ss');
+				item.money = Number(Number(item.money) / 100).toFixed(2);
+				item.pay_type = Number(item.pay_type);
+			});
+			// 创建订单信息
+			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 获取用户账户余额
+	getUserAccountMoney: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.success({ data: 0 }));
+			// 所有待支付给用户的钱
+			const pay_money = await payModal.sum('money', {
+				where: {
+					user_id,
+					type: 2,
+					trade_state: 'PENDDING', // SUCCESS:成功  PENDDING: 等待中 其他均为失败
+				},
+			});
+			// 所有未退款的钱
+			const refund_money = await payModal.sum('money', {
+				where: {
+					user_id,
+					type: 3,
+					refund_state: ['PENDDING'], // SUCCESS:成功  PENDDING: 等待中 其他均为失败
+				},
+			});
+			// 待退款给用户的钱加上待支付给用户的钱
+			const total_money = Number(Number(pay_money) + Number(refund_money)).toFixed(2);
+			res.send(resultMessage.success({ data: total_money }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
 		}
 	},
 };

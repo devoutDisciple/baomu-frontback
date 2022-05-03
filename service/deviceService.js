@@ -43,7 +43,7 @@ module.exports = {
 				longitude,
 				desc,
 				price,
-				is_authentication,
+				authentication,
 			} = req.body;
 			if (
 				!user_id ||
@@ -57,7 +57,7 @@ module.exports = {
 				!longitude ||
 				!desc ||
 				!price ||
-				!is_authentication
+				!authentication
 			) {
 				return res.send(resultMessage.error('系统错误'));
 			}
@@ -70,7 +70,7 @@ module.exports = {
 				img_urls,
 				price,
 				desc,
-				is_authentication,
+				authentication,
 				latitude,
 				longitude,
 				province,
@@ -149,7 +149,7 @@ module.exports = {
 				'img_urls',
 				'price',
 				'desc',
-				'is_authentication',
+				'authentication',
 				'grade',
 				'comment_num',
 				'addressName',

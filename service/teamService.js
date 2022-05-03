@@ -277,10 +277,9 @@ module.exports = {
 	// 根据team_user_id修改乐队担当
 	updateUserDetailByTeamUserId: async (req, res) => {
 		try {
-			const { team_user_id, type } = req.body;
+			const { team_user_id, job_name } = req.body;
 			if (!team_user_id) return res.send(resultMessage.error('系统错误'));
-
-			await teamUserModal.update({ type }, { where: { id: team_user_id } });
+			await teamUserModal.update({ type: job_name }, { where: { id: team_user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

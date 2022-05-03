@@ -33,4 +33,9 @@ router.get('/allPayByUserId', (req, res) => {
 	payService.getAllPayByUserId(req, res);
 });
 
+// 获取用户待提现金额
+router.get('/moneyByUserid', (req, res) => {
+	payService.getUserAccountMoney(req, res);
+});
+
 module.exports = router;

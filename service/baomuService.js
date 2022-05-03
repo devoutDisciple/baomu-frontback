@@ -18,12 +18,13 @@ module.exports = {
 				publicKey: fs.readFileSync(path.join(__dirname, '../wechatPayCert/apiclient_cert.pem')), // 公钥
 				privateKey: fs.readFileSync(path.join(__dirname, '../wechatPayCert/apiclient_key.pem')), // 秘钥
 			});
+			const money = Math.floor(Math.random() * 1000);
 			const params = {
 				// 订单编号
 				out_trade_no: `${ObjectUtil.getRandomStr(12)}${new Date().getTime()}`,
 				notify_url: 'https://www.chiangjiaoyu.com/pay',
 				amount: {
-					total: Number(Number(1).toFixed(0)), // 单位分
+					total: Number(Number(money).toFixed(0)), // 单位分
 					currency: 'CNY',
 				},
 				payer: { openid },
