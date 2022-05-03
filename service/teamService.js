@@ -108,8 +108,11 @@ module.exports = {
 					if (flag) {
 						obj.join_time = time;
 					}
+					// 表示是队长，不用发信息
 					teamParams.push(obj);
-					msgParams.push(msg);
+					if (!flag) {
+						msgParams.push(msg);
+					}
 				});
 				// 批量创建队员
 				await teamUserModal.bulkCreate(teamParams);

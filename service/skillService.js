@@ -15,7 +15,7 @@ module.exports = {
 			data.forEach((item) => {
 				params.push({
 					user_id: item.user_id,
-					skill_id: item.skill_id,
+					skill_name: item.skill_name,
 					grade: item.grade,
 					create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
 					is_delete: 1,
@@ -36,7 +36,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const skills = await skillModal.findAll({ where: { user_id, is_delete: 1 } });
 			if (!skills) return res.send(resultMessage.success([]));
-			const result = responseUtil.renderFieldsAll(skills, ['skill_id', 'grade']);
+			const result = responseUtil.renderFieldsAll(skills, ['id', 'skill_name', 'grade']);
 			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
@@ -49,7 +49,7 @@ module.exports = {
 		try {
 			const { user_id, skill_id } = req.body;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
-			await skillModal.update({ is_delete: 2 }, { where: { user_id, skill_id } });
+			await skillModal.update({ is_delete: 2 }, { where: { user_id, id: skill_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

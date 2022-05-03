@@ -469,4 +469,17 @@ module.exports = {
 			res.send(resultMessage.error());
 		}
 	},
+
+	// 获取个人未支付订单
+	getNoPayDeamnds: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.success({ num: 0 }));
+			const nums = await demandModal.count({ where: { user_id, state: 2 } });
+			res.send(resultMessage.success({ num: nums }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
 };

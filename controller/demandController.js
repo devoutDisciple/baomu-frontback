@@ -43,4 +43,9 @@ router.get('/invitationTime', (req, res) => {
 	demandService.getInvitationTime(req, res);
 });
 
+// 获取个人未支付订单
+router.get('/noPayDeamnds', (req, res) => {
+	demandService.getNoPayDeamnds(req, res);
+});
+
 module.exports = router;
