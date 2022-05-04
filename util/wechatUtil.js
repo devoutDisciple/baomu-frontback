@@ -161,12 +161,12 @@ module.exports = {
 	},
 
 	// 发起退款
-	payRefunds: ({ transaction_id, out_refund_no, refund, total }) => {
+	payRefunds: ({ transaction_id, refund, total }) => {
 		return new Promise(async (resolve, reject) => {
 			try {
 				const params = {
 					transaction_id, // 微信订单号
-					out_refund_no, // 退款单号
+					out_refund_no: `${ObjectUtil.getRandomStr(12)}${new Date().getTime()}`, // 退款单号
 					notify_url: config.wechat_refund_notify_url, // 通知地址
 					amount: {
 						refund, // 退款金额
@@ -174,6 +174,7 @@ module.exports = {
 						currency: 'CNY', // 退款币种
 					},
 				};
+				console.log(JSON.stringify(params), '-----退款发送的信息');
 				const result = await pay.refunds(params);
 				console.log('退款结果是：', JSON.stringify(result));
 				// {
@@ -201,6 +202,7 @@ module.exports = {
 				// }
 				resolve(result);
 			} catch (error) {
+				console.log(error, 2737);
 				reject(error);
 			}
 		});

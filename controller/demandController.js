@@ -48,4 +48,9 @@ router.get('/noPayDeamnds', (req, res) => {
 	demandService.getNoPayDeamnds(req, res);
 });
 
+// 取消订单
+router.post('/cancle', (req, res) => {
+	demandService.cancleOrder(req, res);
+});
+
 module.exports = router;

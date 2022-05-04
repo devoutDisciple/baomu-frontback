@@ -7,9 +7,12 @@ const demand = require('../models/demand');
 const user = require('../models/user');
 const priceRecord = require('../models/price_record');
 const message = require('../models/message');
+const pay = require('../models/pay');
 const responseUtil = require('../util/responseUtil');
+const wechatUtil = require('../util/wechatUtil');
 
 const Op = Sequelize.Op;
+const payModal = pay(sequelize);
 const messageModal = message(sequelize);
 const priceRecordModal = priceRecord(sequelize);
 const userModal = user(sequelize);
@@ -354,7 +357,6 @@ module.exports = {
 					if (join_ids) {
 						const userFields = ['id', 'nickname', 'photo'];
 						const join_ids_arr = join_ids.split(',');
-						console.log(join_ids_arr, 23323);
 						let users = await userModal.findAll({
 							where: { id: join_ids_arr },
 							attributes: userFields,
@@ -477,6 +479,43 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.success({ num: 0 }));
 			const nums = await demandModal.count({ where: { user_id, state: 2 } });
 			res.send(resultMessage.success({ num: nums }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 取消订单
+	cancleOrder: async (req, res) => {
+		try {
+			const { id } = req.body;
+			if (!id) return res.send(resultMessage.success({ num: 0 }));
+			const demandDetail = await demandModal.findOne({
+				where: { id },
+				attributes: ['id', 'state', 'type', 'user_id', 'final_user_id'],
+			});
+			if (demandDetail.state === 1 || demandDetail.state === 2) {
+				await demandModal.update({ state: 4 }, { where: { id } });
+			}
+			// 需求进行中（已支付）这个时候需要退款
+			if (demandDetail.state === 3) {
+				// state: 1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功(未评价) 7-交易成功（已评价） 8-交易取消
+				// 该笔支付订单详情 type: 1-商户付款 2-付款给演员 3-退款给商户 4-退款给用户
+				const payDetail = await payModal.findOne({
+					where: {
+						demand_id: demandDetail.id,
+						trade_state: 'SUCCESS',
+						type: 1,
+					},
+				});
+				const params = {
+					transaction_id: payDetail.transaction_id, // 微信订单号
+					refund: Number(payDetail.money), // 退款金额
+					total: Number(payDetail.money), // 原来总金额
+				};
+				wechatUtil.payRefunds(params);
+			}
+			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

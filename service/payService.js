@@ -84,7 +84,6 @@ module.exports = {
 				return {};
 			}
 			const result = await wechatUtil.getPayNotifyMsg(body);
-			console.log(JSON.stringify(result), 11111);
 			if (!result.out_trade_no || !result.transaction_id) {
 				return res.send(resultMessage.error('系统错误'));
 			}
@@ -181,12 +180,82 @@ module.exports = {
 				where: {
 					user_id,
 					type: 3,
-					refund_state: ['PENDDING'], // SUCCESS:成功  PENDDING: 等待中 其他均为失败
+					refund_status: ['PENDDING'], // SUCCESS:成功  PENDDING: 等待中 其他均为失败
 				},
 			});
 			// 待退款给用户的钱加上待支付给用户的钱
 			const total_money = Number(Number(pay_money) + Number(refund_money)).toFixed(2);
 			res.send(resultMessage.success({ data: total_money }));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 处理微信退款通知
+	handleWechatRefunds: async (req, res) => {
+		try {
+			const body = req.body;
+			if (!body || !body.resource || !body.resource.ciphertext) {
+				return {};
+			}
+
+			// {
+			//     mchid: '1618427379',
+			//     out_trade_no: 'MAJ2EKE6VK071641915233738', // 原支付交易对应的商户订单号
+			//     transaction_id: '4200001344202201110769792875',//微信支付交易订单号
+			//     out_refund_no: 'fdf943jjfdsgjoi9e',//商户系统内部的退款单号
+			//     refund_id: '50302000552022011316424495695',//微信支付退款单号
+			//     refund_status: 'SUCCESS',
+			//     success_time: '2022-01-13T21:45:25+08:00',
+			//     amount: { total: 2, refund: 1, payer_total: 2, payer_refund: 1 },
+			//     user_received_account: '支付用户零钱'
+			//   }
+
+			const result = await wechatUtil.getRefundsNotifyMsg(body);
+			console.log(JSON.stringify(result), '-----微信退款回调数据');
+			if (result.refund_status !== 'SUCCESS') return;
+			// // 查询该条退款信息是否存在
+			const refundRecord = await payModal.findOne({
+				where: {
+					out_trade_no: result.out_trade_no,
+					transaction_id: result.transaction_id,
+					out_refund_no: result.out_refund_no,
+					refund_id: result.refund_id,
+					refund_status: 'SUCCESS',
+				},
+			});
+			// 如果存在该条退款信息
+			if (refundRecord) return res.send(resultMessage.success('success'));
+			// 查询对应的支付信息
+			const payDetail = await payModal.findOne({
+				where: {
+					out_trade_no: result.out_trade_no,
+					transaction_id: result.transaction_id,
+					trade_state: 'SUCCESS',
+					type: 1, // 1-商户付款 2-付款给演员 3-退款给商户 4-退款给用户
+				},
+			});
+			console.log(payDetail.user_id, '----这是退款的用户的id');
+			// // 创建退款支付信息
+			await payModal.create({
+				user_id: payDetail.user_id,
+				open_id: payDetail.open_id,
+				demand_id: payDetail.demand_id,
+				type: 3,
+				out_trade_no: result.out_trade_no,
+				transaction_id: result.transaction_id,
+				out_refund_no: result.out_refund_no,
+				refund_id: result.refund_id,
+				refund_status: result.refund_status,
+				money: result.amount.refund,
+				create_time: moment(result.success_time).format(timeformat),
+			});
+			console.log('创建退款信息成功');
+			// 更改需求状态为退款
+			await demandModal.update({ state: 4 }, { where: { id: payDetail.demand_id } });
+			console.log('更新订单状态成功');
+			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
