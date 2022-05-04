@@ -66,7 +66,7 @@ module.exports = {
 	// 根据地理位置获取需求
 	getDemandByAddress: async (req, res) => {
 		try {
-			const { current, address_select, plays_style_id } = req.query;
+			const { current, address_select, plays_style_id, instruments_type_id } = req.query;
 			// const commonFields = [
 			// 	'id',
 			// 	'title',
@@ -120,6 +120,9 @@ module.exports = {
 			};
 			if (plays_style_id) {
 				where.play_id = plays_style_id;
+			}
+			if (instruments_type_id) {
+				where.instrument_id = instruments_type_id;
 			}
 			const demands = await demandModal.findAll({
 				where,
