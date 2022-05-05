@@ -168,12 +168,17 @@ module.exports = {
 					transaction_id, // 微信订单号
 					out_refund_no: `${ObjectUtil.getRandomStr(12)}${new Date().getTime()}`, // 退款单号
 					notify_url: config.wechat_refund_notify_url, // 通知地址
+					reason: '退款',
 					amount: {
 						refund, // 退款金额
 						total, // 原来总金额
 						currency: 'CNY', // 退款币种
 					},
 				};
+				// {"transaction_id":"4200001508202205059079234229",
+				// "out_refund_no":"9XN2RY1Z4V941651754077077",
+				// "notify_url":"https://www.baomust.com/baomuyanyi/pay/handleWechatRefunds",
+				// "amount":{"refund":10,"total":10,"currency":"CNY"}}
 				console.log(JSON.stringify(params), '-----退款发送的信息');
 				const result = await pay.refunds(params);
 				console.log('退款结果是：', JSON.stringify(result));

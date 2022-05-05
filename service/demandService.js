@@ -511,6 +511,9 @@ module.exports = {
 						type: 1,
 					},
 				});
+				if (!payDetail || !payDetail.transaction_id) {
+					return res.send(resultMessage.success('success'));
+				}
 				const params = {
 					transaction_id: payDetail.transaction_id, // 微信订单号
 					refund: Number(payDetail.money), // 退款金额

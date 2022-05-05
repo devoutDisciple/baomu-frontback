@@ -213,8 +213,6 @@ module.exports = {
 			//   }
 
 			const result = await wechatUtil.getRefundsNotifyMsg(body);
-			console.log(JSON.stringify(result), '-----微信退款回调数据');
-			if (result.refund_status !== 'SUCCESS') return;
 			// // 查询该条退款信息是否存在
 			const refundRecord = await payModal.findOne({
 				where: {
@@ -231,17 +229,11 @@ module.exports = {
 			const payDetail = await payModal.findOne({
 				where: {
 					out_trade_no: result.out_trade_no,
-					transaction_id: result.transaction_id,
 					trade_state: 'SUCCESS',
 					type: 1, // 1-商户付款 2-付款给演员 3-退款给商户 4-退款给用户
 				},
 			});
-			console.log(payDetail.user_id, '----这是退款的用户的id');
-			// // 创建退款支付信息
-			await payModal.create({
-				user_id: payDetail.user_id,
-				open_id: payDetail.open_id,
-				demand_id: payDetail.demand_id,
+			let params = {
 				type: 3,
 				out_trade_no: result.out_trade_no,
 				transaction_id: result.transaction_id,
@@ -250,11 +242,19 @@ module.exports = {
 				refund_status: result.refund_status,
 				money: result.amount.refund,
 				create_time: moment(result.success_time).format(timeformat),
-			});
-			console.log('创建退款信息成功');
+			};
+			if (payDetail) {
+				params = {
+					...params,
+					user_id: payDetail.user_id,
+					open_id: payDetail.open_id,
+					demand_id: payDetail.demand_id,
+				};
+				// // 创建退款支付信息
+				await payModal.create(params);
+			}
 			// 更改需求状态为退款
 			await demandModal.update({ state: 4 }, { where: { id: payDetail.demand_id } });
-			console.log('更新订单状态成功');
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
