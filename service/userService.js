@@ -143,7 +143,7 @@ module.exports = {
 				const productionList = await productionModal.findAll({
 					attributes: ['id', 'img_url', 'video'],
 					// type 1-作品 2-动态
-					where: { user_id: currentItem.id, type: 1 },
+					where: { user_id: currentItem.id, type: 1, is_delete: 1 },
 					order: [['create_time', 'DESC']],
 					limit: 3,
 					offset: 0,
@@ -219,7 +219,7 @@ module.exports = {
 				const productionList = await productionModal.findAll({
 					attributes: ['id', 'img_url', 'video'],
 					// type 1-作品 2-动态
-					where: { user_id: currentItem.id, type: 1 },
+					where: { user_id: currentItem.id, type: 1, is_delete: 1 },
 					order: [['create_time', 'DESC']],
 					limit: 3,
 					offset: 0,
@@ -323,7 +323,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const productionList = await productionModal.findAll({
 				attributes: ['id', 'img_url', 'video'],
-				where: { user_id, type },
+				where: { user_id, type, is_delete: 1 },
 				order: [['create_time', 'DESC']],
 				limit: 3,
 				offset: 0,
