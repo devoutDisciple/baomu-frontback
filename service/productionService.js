@@ -351,4 +351,16 @@ module.exports = {
 			res.send(resultMessage.error());
 		}
 	},
+
+	deleteItemById: async (req, res) => {
+		try {
+			const { id } = req.body;
+			if (!id) res.send(resultMessage.error());
+			await productionModal.update({ is_delete: 2 }, { where: { id } });
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
 };

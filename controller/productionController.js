@@ -61,4 +61,9 @@ router.get('/teamOneProductions', (req, res) => {
 	productionService.getTeamOneProductions(req, res);
 });
 
+// 删除作品
+router.post('/deleteItemById', (req, res) => {
+	productionService.deleteItemById(req, res);
+});
+
 module.exports = router;
