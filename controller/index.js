@@ -6,6 +6,7 @@ const demandController = require('./demandController');
 const skillController = require('./skillController');
 const levelController = require('./levelController');
 const schoolController = require('./schoolController');
+const awardController = require('./awardController');
 const idcardConroller = require('./idcardConroller');
 const productionController = require('./productionController');
 const videoController = require('./videoController');
@@ -36,6 +37,8 @@ const router = (app) => {
 	app.use('/level', levelController);
 	// 学校认证相关
 	app.use('/school', schoolController);
+	// 获奖认证相关
+	app.use('/award', awardController);
 	// 身份证相关
 	app.use('/idcard', idcardConroller);
 	// 作品相关

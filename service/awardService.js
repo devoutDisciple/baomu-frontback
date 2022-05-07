@@ -1,13 +1,13 @@
 const moment = require('moment');
 const sequelize = require('../dataSource/MysqlPoolClass');
 const resultMessage = require('../util/resultMessage');
-const school = require('../models/school');
+const award = require('../models/award');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
-const schoolModal = school(sequelize);
+const awardModal = award(sequelize);
 
 module.exports = {
 	// 上传图片
@@ -26,18 +26,17 @@ module.exports = {
 			const data = req.body;
 			if (
 				!data.user_id ||
-				!data.school_url ||
-				!data.name ||
-				!data.idcard ||
-				!data.school_name ||
-				!data.graduation_time ||
-				!data.study_id
+				!data.award_url ||
+				!data.certificate_gov ||
+				!data.certificate_name ||
+				!data.certificate_level ||
+				!data.certificate_time
 			) {
 				return res.send(resultMessage.error('系统错误'));
 			}
 			data.state = 2;
 			data.create_time = moment().format(timeformat);
-			await schoolModal.create(data);
+			await awardModal.create(data);
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
@@ -50,21 +49,20 @@ module.exports = {
 		try {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
-			const levels = await schoolModal.findOne({ where: { user_id, is_delete: 1 } });
-			if (!levels) return res.send(resultMessage.success([]));
-			const result = responseUtil.renderFieldsObj(levels, [
+			const awards = await awardModal.findOne({ where: { user_id, is_delete: 1 } });
+			if (!awards) return res.send(resultMessage.success([]));
+			const result = responseUtil.renderFieldsObj(awards, [
+				'id',
 				'user_id',
-				'school_url',
-				'name',
-				'idcard',
-				'school_name',
-				'graduation_time',
-				'study_id',
+				'award_url',
+				'certificate_gov',
+				'certificate_name',
+				'certificate_level',
+				'certificate_time',
 				'state',
 			]);
 			if (result) {
-				result.school_url = config.preUrl.schoolUrl + result.school_url;
-				result.graduation_time = moment(result.date).format('YYYY-MM-DD');
+				result.award_url = config.preUrl.awardUrl + result.award_url;
 				result.certificate_time = moment(result.date).format('YYYY-MM-DD');
 			}
 			res.send(resultMessage.success(result));
