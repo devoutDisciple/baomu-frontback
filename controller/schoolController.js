@@ -36,4 +36,9 @@ router.get('/all', (req, res) => {
 	schoolService.getAll(req, res);
 });
 
+// 删除
+router.post('/deleteItemById', (req, res) => {
+	schoolService.deleteItemById(req, res);
+});
+
 module.exports = router;

@@ -26,19 +26,14 @@ router.post('/upload', upload.single('file'), (req, res) => {
 	levelService.uploadFile(req, res, filename);
 });
 
-// 添加技能
-router.post('/add', (req, res) => {
-	levelService.addSkill(req, res);
-});
-
-// 删除技能
-router.post('/delete', (req, res) => {
-	levelService.deleteBySkillId(req, res);
-});
-
-// 删除技能
+// 获取所有
 router.get('/all', (req, res) => {
 	levelService.getAll(req, res);
+});
+
+// 删除
+router.post('/deleteItemById', (req, res) => {
+	levelService.deleteItemById(req, res);
 });
 
 module.exports = router;

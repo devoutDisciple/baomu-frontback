@@ -2,11 +2,13 @@ const moment = require('moment');
 const sequelize = require('../dataSource/MysqlPoolClass');
 const resultMessage = require('../util/resultMessage');
 const idcard = require('../models/idcard');
+const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
+const userModal = user(sequelize);
 const idcardModal = idcard(sequelize);
 
 module.exports = {
@@ -44,12 +46,28 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const idcards = await idcardModal.findOne({ where: { user_id, is_delete: 1 } });
 			if (!idcards) return res.send(resultMessage.success({}));
-			const result = responseUtil.renderFieldsObj(idcards, ['idcard1', 'idcard2', 'state']);
+			const result = responseUtil.renderFieldsObj(idcards, ['id', 'idcard1', 'idcard2', 'state']);
 			if (result) {
 				result.idcard1 = config.preUrl.idcardUrl + result.idcard1;
 				result.idcard2 = config.preUrl.idcardUrl + result.idcard2;
 			}
 			res.send(resultMessage.success(result));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 删除
+	deleteItemById: async (req, res) => {
+		try {
+			const { id, user_id } = req.body;
+			if (!id || !user_id) {
+				return res.send(resultMessage.error('系统错误'));
+			}
+			await idcardModal.update({ is_delete: 2 }, { where: { id } });
+			await userModal.update({ is_name: 2 }, { where: { id: user_id } });
+			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

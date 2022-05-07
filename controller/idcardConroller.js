@@ -36,4 +36,9 @@ router.get('/all', (req, res) => {
 	idcardService.getAll(req, res);
 });
 
+// 删除
+router.post('/deleteItemById', (req, res) => {
+	idcardService.deleteItemById(req, res);
+});
+
 module.exports = router;

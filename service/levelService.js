@@ -2,11 +2,13 @@ const moment = require('moment');
 const sequelize = require('../dataSource/MysqlPoolClass');
 const resultMessage = require('../util/resultMessage');
 const level = require('../models/level');
+const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
+const userModal = user(sequelize);
 const levelModal = level(sequelize);
 
 module.exports = {
@@ -37,7 +39,7 @@ module.exports = {
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const levels = await levelModal.findOne({ where: { user_id, is_delete: 1 } });
 			if (!levels) return res.send(resultMessage.success([]));
-			const result = responseUtil.renderFieldsObj(levels, ['school_id', 'level_id', 'date', 'url', 'state']);
+			const result = responseUtil.renderFieldsObj(levels, ['id', 'school_id', 'level_id', 'date', 'url', 'state']);
 			if (result) {
 				result.url = config.preUrl.levelUrl + result.url;
 				result.date = moment(result.date).format('YYYY-MM-DD');
@@ -49,12 +51,15 @@ module.exports = {
 		}
 	},
 
-	// 删除技能
-	deleteBySkillId: async (req, res) => {
+	// 删除
+	deleteItemById: async (req, res) => {
 		try {
-			const { user_id, skill_id } = req.body;
-			if (!user_id) return res.send(resultMessage.error('系统错误'));
-			await levelModal.update({ is_delete: 2 }, { where: { user_id, skill_id } });
+			const { id, user_id } = req.body;
+			if (!id || !user_id) {
+				return res.send(resultMessage.error('系统错误'));
+			}
+			await levelModal.update({ is_delete: 2 }, { where: { id } });
+			await userModal.update({ is_level: 2 }, { where: { id: user_id } });
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
