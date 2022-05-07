@@ -93,7 +93,7 @@ module.exports = {
 			if (person_style_id && person_style_id !== 'undefined') {
 				personStyleParams = `and style_id = ${person_style_id}`;
 			}
-			// 演奏方式
+			// 表演类型
 			if (plays_style_id && plays_style_id !== 'undefined') {
 				playStyleParams = `and play_id = ${plays_style_id}`;
 			}
@@ -121,7 +121,7 @@ module.exports = {
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
 			FROM user where id != ${user_id} ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} and is_delete = 1 
-			and is_name = 1 and is_school = 1 and is_award = 1 and is_level = 1
+			and is_name = 1 and is_school = 1 
             ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			console.log(statement, 111);
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
@@ -143,7 +143,7 @@ module.exports = {
 				const productionList = await productionModal.findAll({
 					attributes: ['id', 'img_url', 'video'],
 					// type 1-作品 2-动态
-					where: { user_id: currentItem.id, type: 1, is_delete: 1 },
+					where: { user_id: currentItem.id, is_delete: 1 },
 					order: [['create_time', 'DESC']],
 					limit: 3,
 					offset: 0,
