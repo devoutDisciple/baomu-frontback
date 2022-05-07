@@ -35,13 +35,14 @@ module.exports = {
 	// 更新用户基本信息
 	updateInfo: async (req, res) => {
 		try {
-			const { nickname, photo, username, style_id, desc, user_id } = req.body;
+			const { nickname, photo, username, style_id, descinstrument_id, desc, user_id } = req.body;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const params = {};
 			if (nickname) params.nickname = nickname;
 			if (username) params.username = username;
 			if (photo) params.photo = photo;
 			if (style_id) params.style_id = style_id;
+			if (descinstrument_id) params.descinstrument_id = descinstrument_id;
 			if (desc) params.desc = desc;
 			await userModal.update(params, { where: { id: user_id } });
 			res.send(resultMessage.success('success'));
@@ -75,7 +76,7 @@ module.exports = {
 	getUserByLocation: async (req, res) => {
 		try {
 			// onlyPerson 是否只是获取用户
-			const { user_id, current, onlyPerson, address_select, person_style_id, plays_style_id, team_type_id } = req.query;
+			const { user_id, current, onlyPerson, address_select, person_style_id, instruments_type_id, team_type_id } = req.query;
 			let personParams = '';
 			let addressParams = '';
 			let personStyleParams = '';
@@ -93,9 +94,9 @@ module.exports = {
 			if (person_style_id && person_style_id !== 'undefined') {
 				personStyleParams = `and style_id = ${person_style_id}`;
 			}
-			// 表演类型
-			if (plays_style_id && plays_style_id !== 'undefined') {
-				playStyleParams = `and play_id = ${plays_style_id}`;
+			// 乐器类型
+			if (instruments_type_id && instruments_type_id !== 'undefined') {
+				playStyleParams = `and instruments_id = ${instruments_type_id}`;
 			}
 			// 乐队类型
 			if (team_type_id && team_type_id !== 'undefined') {
@@ -277,6 +278,7 @@ module.exports = {
 				'is_award',
 				'is_level',
 				'style_id',
+				'instruments_id',
 				'desc',
 			];
 			const userDetail = await userModal.findOne({
