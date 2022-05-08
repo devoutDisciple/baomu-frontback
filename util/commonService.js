@@ -39,7 +39,6 @@ const handleComment = async (comments, user_id, goodsType) => {
 			const goodsDetail = await goodsRecordModal.findOne({ where: { user_id, comment_id: item.id, type: goodsType } });
 			if (goodsDetail) {
 				item.hadGoods = true;
-				console.log(item, 111);
 			}
 		}
 	}

@@ -18,6 +18,7 @@ const teamController = require('./teamController');
 const payController = require('./payController');
 const demandEvaluateController = require('./demandEvaluateController');
 const deviceController = require('./deviceController');
+const attentionController = require('./attentionController');
 const baomuController = require('./baomuController');
 
 const router = (app) => {
@@ -55,6 +56,8 @@ const router = (app) => {
 	app.use('/message', messageController);
 	// 乐队相关
 	app.use('/team', teamController);
+	// 关注相关
+	app.use('/attention', attentionController);
 	// 支付相关
 	app.use('/pay', payController);
 	// 需求评价相关

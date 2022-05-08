@@ -52,13 +52,13 @@ module.exports = {
 			if (goods_type) {
 				// 给帖子增加赞 热度 + 1
 				productionModal.increment({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
-				// 用户点赞
-				userModal.increment({ goods_num: 1 }, { where: { id: user_id } });
+				// 用户获赞
+				userModal.increment({ goods_num: 1 }, { where: { id: other_id } });
 			} else {
 				// 给帖子取消赞 热度 - 1
 				productionModal.decrement({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
 				// 用户点赞
-				userModal.decrement({ goods_num: 1 }, { where: { id: user_id } });
+				userModal.decrement({ goods_num: 1 }, { where: { id: other_id } });
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
@@ -121,15 +121,15 @@ module.exports = {
 				await commentRecordModal.increment({ goods_num: 1 }, { where: { id: comment_id } });
 				// 帖子热度 + 1
 				await productionModal.increment({ hot_num: 1 }, { where: { id: content_id } });
-				// 用户点赞数量 + 1
-				await userModal.increment({ goods_num: 1 }, { where: { id: user_id } });
+				// 用户获赞数量 + 1
+				await userModal.increment({ goods_num: 1 }, { where: { id: other_id } });
 			} else {
 				// 评论的点赞 + 1
 				await commentRecordModal.decrement({ goods_num: 1 }, { where: { id: comment_id } });
 				// 帖子热度 - 1
 				await productionModal.decrement({ hot_num: 1 }, { where: { id: content_id } });
-				// 用户点赞数量 - 1
-				await userModal.decrement({ goods_num: 1 }, { where: { id: user_id } });
+				// 用户获赞数量 - 1
+				await userModal.decrement({ goods_num: 1 }, { where: { id: other_id } });
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {

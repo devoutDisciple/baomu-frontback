@@ -35,14 +35,14 @@ module.exports = {
 	// 更新用户基本信息
 	updateInfo: async (req, res) => {
 		try {
-			const { nickname, photo, username, style_id, descinstrument_id, desc, user_id } = req.body;
+			const { nickname, photo, username, style_id, instruments_id, desc, user_id } = req.body;
 			if (!user_id) return res.send(resultMessage.error('系统错误'));
 			const params = {};
 			if (nickname) params.nickname = nickname;
 			if (username) params.username = username;
 			if (photo) params.photo = photo;
 			if (style_id) params.style_id = style_id;
-			if (descinstrument_id) params.descinstrument_id = descinstrument_id;
+			if (instruments_id) params.instruments_id = instruments_id;
 			if (desc) params.desc = desc;
 			await userModal.update(params, { where: { id: user_id } });
 			res.send(resultMessage.success('success'));
@@ -124,7 +124,6 @@ module.exports = {
 			FROM user where id != ${user_id} ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} and is_delete = 1 
 			and is_name = 1 and is_school = 1 
             ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
-			console.log(statement, 111);
 			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			if (!result || result.length === 0) return res.send(resultMessage.success([]));
