@@ -306,7 +306,7 @@ module.exports = {
 			const { userIds, team_id } = req.body;
 			if (!userIds || userIds.length === 0) return res.send(resultMessage.success('success'));
 			if (!team_id) return res.send(resultMessage.error('系统错误'));
-			const teamDetail = await teamModal.findOne({ where: { id: team_id } });
+			const teamDetail = await teamModal.findOne({ where: { id: team_id, is_delete: 1 } });
 			if (!teamDetail) return res.send(resultMessage.error('系统错误'));
 			const user_ids = teamDetail.user_ids;
 			const user_ids_arr = user_ids.split(',');

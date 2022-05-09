@@ -121,10 +121,9 @@ module.exports = {
 			const userDetail = await userModal.findOne({ where: { id: user_id } });
 			const statement = `SELECT ${selctFields} ,(st_distance(point(longitude, latitude), 
             point (${userDetail.longitude}, ${userDetail.latitude}))*111195/1000 ) as distance 
-			FROM user where id != ${user_id} ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} and is_delete = 1 
-			and is_name = 1 and is_school = 1 
+			FROM user where is_delete = 1 ${personParams} ${addressParams} ${personStyleParams} ${playStyleParams} ${teamTypeParams} 
+			and ((is_name = 1 and is_school = 1) or type != 1) 
             ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
-			// FROM user ORDER BY distance ASC LIMIT ${offset}, ${pagesize}`;
 			const result = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			if (!result || result.length === 0) return res.send(resultMessage.success([]));
 			const responseResult = responseUtil.renderFieldsAll(result, [...commonFields, 'distance']);
