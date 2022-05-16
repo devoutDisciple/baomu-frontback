@@ -7,6 +7,7 @@ const priceRecord = require('../models/price_record');
 const message = require('../models/message');
 const responseUtil = require('../util/responseUtil');
 const { getPhotoUrl } = require('../util/userUtil');
+const postMessage = require('../util/postMessage');
 
 const messageModal = message(sequelize);
 const priceRecordModal = priceRecord(sequelize);
@@ -73,6 +74,18 @@ module.exports = {
 			}
 			// 更新需求的竞价人员
 			res.send(resultMessage.success('success'));
+			let user_msg_id = '';
+			// 演员报价,推送给需求方
+			if (type === 1) {
+				user_msg_id = publisher_id;
+			} else {
+				// 需求方报价,推送给演员
+				user_msg_id = user_id;
+			}
+			const personDetail = await userModal.findOne({ where: { id: user_msg_id }, attributes: ['id', 'phone', 'type'] });
+			const phone = personDetail.phone;
+			if (!phone || Number(personDetail.type) !== 1) return;
+			postMessage.sernd_message_for_sign_process(phone);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
@@ -84,17 +97,6 @@ module.exports = {
 		try {
 			const { demand_id } = req.query;
 			if (!demand_id) return res.send(resultMessage.success('系统错误'));
-			// const priceRecords = await priceRecordModal.findAll({
-			// 	where: { demand_id },
-			// 	order: [['create_time', 'ASC']],
-			// 	include: [
-			// 		{
-			// 			model: userModal,
-			// 			as: 'userDetail',
-			// 			attributes: ['id', 'nickname', 'photo'],
-			// 		},
-			// 	],
-			// });
 			const statement = `select distinct user_id from price_record where demand_id = ${demand_id}`;
 			const usersList = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
 			const result = [];
@@ -132,7 +134,6 @@ module.exports = {
 					});
 				}
 			}
-			console.log(result, 222);
 			// 更新需求的竞价人员
 			res.send(resultMessage.success(result));
 		} catch (error) {
@@ -159,7 +160,6 @@ module.exports = {
 				'state',
 				'create_time',
 			]);
-			console.log(result, 222);
 			// 更新需求的竞价人员
 			res.send(resultMessage.success(result));
 		} catch (error) {
@@ -206,6 +206,19 @@ module.exports = {
 				});
 			}
 			res.send(resultMessage.success('success'));
+
+			let msg_user_id = '';
+			if (priceDetail.type === 1) {
+				// 需求方同意演员报价, 推送给演员
+				msg_user_id = priceDetail.user_id;
+			} else {
+				// 演员同意需求方报价, 推送给需求方
+				msg_user_id = priceDetail.publisher_id;
+			}
+			const personDetail = await userModal.findOne({ where: { id: msg_user_id }, attributes: ['id', 'phone', 'type'] });
+			const phone = personDetail.phone;
+			if (!phone || Number(personDetail.type) !== 1) return;
+			postMessage.sernd_message_for_sign_success(phone);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
@@ -242,6 +255,19 @@ module.exports = {
 				});
 			}
 			res.send(resultMessage.success('success'));
+
+			let msg_user_id = '';
+			if (priceDetail.type === 1) {
+				// 需求方同意演员报价, 推送给演员
+				msg_user_id = priceDetail.publisher_id;
+			} else {
+				// 演员同意需求方报价, 推送给需求方
+				msg_user_id = priceDetail.user_id;
+			}
+			const personDetail = await userModal.findOne({ where: { id: msg_user_id }, attributes: ['id', 'phone', 'type'] });
+			const phone = personDetail.phone;
+			if (!phone || Number(personDetail.type) !== 1) return;
+			postMessage.sernd_message_for_sign_refuse(phone);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

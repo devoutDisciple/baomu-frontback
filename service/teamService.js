@@ -316,7 +316,6 @@ module.exports = {
 			await teamModal.update({ user_ids: newUser_ids }, { where: { id: team_id } });
 			const teamParams = [];
 			const msgParams = [];
-
 			if (Array.isArray(userIds)) {
 				userIds.forEach((item) => {
 					const time = moment().format('YYYY-MM-DD HH:mm:ss');

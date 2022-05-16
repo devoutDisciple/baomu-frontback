@@ -15,21 +15,20 @@ const client = new Core({
 const RegionId = 'cn-hangzhou';
 
 module.exports = {
-	// 发送参与组团
-	postJoinTeamMsg: (phoneNum, name) => {
+	// 发送议价信息给演员或者商家
+	sernd_message_for_sign_process: (phoneNum) => {
 		if (config.send_message_flag === 2) return;
 		const params = {
 			RegionId,
 			PhoneNumbers: phoneNum,
 			SignName: config.notify_message_sign,
-			TemplateCode: config.message_joinTeamCode,
-			TemplateParam: JSON.stringify({ name }),
+			TemplateCode: config.MESSAGE_FOR_SIGN_PROCESS,
 		};
 		return new Promise((resolve, reject) => {
 			client.request('SendSms', params, requestOption).then(
 				(result) => {
 					console.log(JSON.stringify(result));
-					resolve({ phoneNum, name });
+					resolve({ phoneNum });
 				},
 				(ex) => {
 					reject('发送失败');
@@ -39,15 +38,14 @@ module.exports = {
 		});
 	},
 
-	// 退款通知
-	postRefundsMsg: (phoneNum, name) => {
+	// 发送议价同意信息给演员或者商家
+	sernd_message_for_sign_success: (phoneNum, name) => {
 		if (config.send_message_flag === 2) return;
 		const params = {
 			RegionId,
 			PhoneNumbers: phoneNum,
-			SignName: config.notify_message_sign,
+			SignName: config.MESSAGE_FOR_SIGN_SUCCESS,
 			TemplateCode: config.message_refundsCode,
-			TemplateParam: JSON.stringify({ name }),
 		};
 		return new Promise((resolve, reject) => {
 			client.request('SendSms', params, requestOption).then(
@@ -63,13 +61,13 @@ module.exports = {
 		});
 	},
 
-	// 发送拼团成功
-	postTeamSuccessMsg: (phoneNum, name) => {
+	// 发送议价拒绝信息给演员或者商家
+	sernd_message_for_sign_refuse: (phoneNum, name) => {
 		if (config.send_message_flag === 2) return;
 		const params = {
 			RegionId,
 			PhoneNumbers: phoneNum,
-			SignName: config.notify_message_sign,
+			SignName: config.MESSAGE_FOR_SIGN_REFUSE,
 			TemplateCode: config.message_teamSuccessCode,
 		};
 		return new Promise((resolve, reject) => {
@@ -86,21 +84,43 @@ module.exports = {
 		});
 	},
 
-	// 报名成功
-	postSignupSuccessMsg: (phoneNum, name) => {
+	// 商家-发送短信给商家付款完成
+	sernd_message_for_shoper_pay_success: (phoneNum) => {
 		if (config.send_message_flag === 2) return;
 		const params = {
 			RegionId,
 			PhoneNumbers: phoneNum,
 			SignName: config.notify_message_sign,
 			TemplateCode: config.message_signupSuccessCode,
-			TemplateParam: JSON.stringify({ name }),
 		};
 		return new Promise((resolve, reject) => {
 			client.request('SendSms', params, requestOption).then(
 				(result) => {
 					console.log(JSON.stringify(result));
-					resolve({ phoneNum, name });
+					resolve({ phoneNum });
+				},
+				(ex) => {
+					reject('发送失败');
+					console.log(ex);
+				},
+			);
+		});
+	},
+
+	// 演员-发送短信给演员付款完成
+	sernd_message_for_user_pay_success: (phoneNum) => {
+		if (config.send_message_flag === 2) return;
+		const params = {
+			RegionId,
+			PhoneNumbers: phoneNum,
+			SignName: config.MESSAGE_FOR_USER_PAY_SUCCESS,
+			TemplateCode: config.message_signupSuccessCode,
+		};
+		return new Promise((resolve, reject) => {
+			client.request('SendSms', params, requestOption).then(
+				(result) => {
+					console.log(JSON.stringify(result));
+					resolve({ phoneNum });
 				},
 				(ex) => {
 					reject('发送失败');

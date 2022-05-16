@@ -310,7 +310,7 @@ module.exports = {
 				where += `and FIND_IN_SET(${user_id}, demand.join_ids) `;
 			}
 			const statement = `SELECT demand.id, demand.user_id, demand.join_ids, demand.title, demand.play_id, 
-            demand.instrument_id, demand.addressName, demand.price, demand.state, demand.grade, demand.final_user_id, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
+            demand.instrument_id, demand.addressName, demand.price, demand.state, demand.grade, demand.final_user_id, demand.final_price, demand.create_time, userDetail.nickname AS username, userDetail.photo AS userPhoto 
             FROM demand AS demand LEFT OUTER JOIN user AS userDetail ON demand.user_id = userDetail.id 
             ${where} ORDER BY demand.create_time DESC;`;
 			const demands = await sequelize.query(statement, { type: sequelize.QueryTypes.SELECT });
@@ -416,6 +416,7 @@ module.exports = {
 					},
 					final_user_id: user_id,
 					is_delete: 1,
+					state: [3, 5, 6, 7],
 				},
 				attributes: commonFields,
 			});

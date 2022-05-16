@@ -5,8 +5,11 @@ const wechatUtil = require('../util/wechatUtil');
 const config = require('../config/config');
 const demand = require('../models/demand');
 const pay = require('../models/pay');
+const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
+const postMessage = require('../util/postMessage');
 
+const userModal = user(sequelize);
 const payModal = pay(sequelize);
 const demandModal = demand(sequelize);
 
@@ -130,8 +133,16 @@ module.exports = {
 				create_time: moment().format(timeformat),
 			});
 			// 更改需求状态 1-竞价进行中 2-竞价结束，需求进行中（未支付） 3-需求进行中（已支付） 4-需求取消  5-待付款给用户 6-交易成功 7-交易取消
-			await demandModal.update({ state: 3 }, { where: { id: attach.demandId } });
+			const demandDetail = await demandModal.update({ state: 3 }, { where: { id: attach.demandId } });
 			res.send(resultMessage.success('success'));
+			// 发送信息
+			const resultDetail = responseUtil.renderFieldsObj(demandDetail, ['id', 'user_id', 'final_user_id']);
+			const publisherDetail = await userModal.findOne({ where: { id: attach.userId }, attribute: ['id', 'phone'] });
+			const actorDetail = await userModal.findOne({ where: { id: resultDetail.final_user_id }, attribute: ['id', 'phone'] });
+			// 发送信息给商家
+			postMessage.sernd_message_for_shoper_pay_success(publisherDetail.phone);
+			// 发送信息给演员
+			postMessage.sernd_message_for_user_pay_success(actorDetail.phone);
 		} catch (error) {
 			console.log(error);
 			return res.send(resultMessage.error('网络出小差了, 请稍后重试'));
