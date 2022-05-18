@@ -336,7 +336,7 @@ module.exports = {
 					const videoDetail = JSON.parse(item.video);
 					if (img_url && img_url.length !== 0) {
 						const newImgs = img_url.map((img) => ({ type: 'img', url: `${config.preUrl.productionUrl}${img}` }));
-						result = [...newImgs, ...result];
+						result = [...result, ...newImgs];
 					}
 					if (videoDetail && Object.keys(videoDetail).length !== 0) {
 						videoDetail.url = config.preUrl.productionUrl + videoDetail.url;

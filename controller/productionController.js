@@ -26,7 +26,7 @@ router.post('/uploadImg', upload.single('file'), (req, res) => {
 	productionService.uploadImg(req, res, filename);
 });
 
-// 上传视频和图片
+// 上传封面
 router.post('/uploadCoverImg', upload.single('file'), (req, res) => {
 	productionService.uploadCoverImg(req, res, filename);
 });

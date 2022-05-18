@@ -51,12 +51,12 @@ module.exports = {
 			}
 			if (goods_type) {
 				// 给帖子增加赞 热度 + 1
-				productionModal.increment({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
+				productionModal.increment({ goods_num: 1 }, { where: { id: content_id } });
 				// 用户获赞
 				userModal.increment({ goods_num: 1 }, { where: { id: other_id } });
 			} else {
 				// 给帖子取消赞 热度 - 1
-				productionModal.decrement({ goods_num: 1, hot: 1 }, { where: { id: content_id } });
+				productionModal.decrement({ goods_num: 1 }, { where: { id: content_id } });
 				// 用户点赞
 				userModal.decrement({ goods_num: 1 }, { where: { id: other_id } });
 			}
