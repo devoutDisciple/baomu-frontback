@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 	},
 	filename(req, file, cb) {
 		// 将保存文件名设置为 随机字符串 + 时间戳名，比如 JFSDJF323423-1342342323.png
-		filename = `${ObjectUtil.getName()}-${Date.now()}.png`;
+		filename = `${ObjectUtil.getName()}-${Date.now()}.jpg`;
 		cb(null, filename);
 	},
 });
@@ -23,7 +23,7 @@ const upload = multer({ dest: config.photoPath, storage });
 
 // 更新用户头像
 router.post('/upload', upload.single('file'), (req, res) => {
-	userService.uploadFile(req, res, filename);
+	userService.uploadFile(req, res, filename, config.photoPath);
 });
 
 // 更新用户基本信息

@@ -5,6 +5,7 @@ const award = require('../models/award');
 const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
+const ImgDeal = require('../util/ImgDeal');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
@@ -13,9 +14,10 @@ const awardModal = award(sequelize);
 
 module.exports = {
 	// 上传图片
-	uploadFile: async (req, res, filename) => {
+	uploadFile: async (req, res, filename, filePath) => {
 		try {
 			res.send(resultMessage.success({ url: filename }));
+			ImgDeal(filename, filePath);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

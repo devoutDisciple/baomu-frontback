@@ -9,6 +9,7 @@ const config = require('../config/config');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 const { getPhotoUrl } = require('../util/userUtil');
+const ImgDeal = require('../util/ImgDeal');
 
 const userModal = user(sequelize);
 const productionModal = production(sequelize);
@@ -18,19 +19,10 @@ const pagesize = 10;
 
 module.exports = {
 	// 上传图片
-	uploadImg: async (req, res, filename) => {
+	uploadImg: async (req, res, filename, filePath) => {
 		try {
 			res.send(resultMessage.success({ url: filename }));
-		} catch (error) {
-			console.log(error);
-			res.send(resultMessage.error());
-		}
-	},
-
-	// 上传视频
-	uploadVideo: async (req, res, filename) => {
-		try {
-			res.send(resultMessage.success({ url: filename }));
+			ImgDeal(filename, filePath);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

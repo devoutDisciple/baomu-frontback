@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 	},
 	filename(req, file, cb) {
 		// 将保存文件名设置为 随机字符串 + 时间戳名，比如 JFSDJF323423-1342342323.png
-		filename = `${ObjectUtil.getName()}-${Date.now()}.png`;
+		filename = `${ObjectUtil.getName()}-${Date.now()}.jpg`;
 		cb(null, filename);
 	},
 });
@@ -23,7 +23,7 @@ const upload = multer({ dest: config.levelPath, storage });
 
 // 添加技能
 router.post('/upload', upload.single('file'), (req, res) => {
-	levelService.uploadFile(req, res, filename);
+	levelService.uploadFile(req, res, filename, config.levelPath);
 });
 
 // 获取所有

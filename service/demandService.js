@@ -456,6 +456,7 @@ module.exports = {
 							[Op.lte]: end_day,
 						},
 					},
+					state: [3, 5, 6, 7],
 				},
 				attributes: commonFields,
 			});

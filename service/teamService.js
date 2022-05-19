@@ -12,6 +12,8 @@ const config = require('../config/config');
 const responseUtil = require('../util/responseUtil');
 const { getPhotoUrl } = require('../util/userUtil');
 
+const ImgDeal = require('../util/ImgDeal');
+
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
 const messageModal = message(sequelize);
@@ -24,9 +26,10 @@ teamUserModal.belongsTo(userModal, { foreignKey: 'user_id', targetKey: 'id', as:
 
 module.exports = {
 	// 上传图片
-	uploadFile: async (req, res, filename) => {
+	uploadFile: async (req, res, filename, filePath) => {
 		try {
 			res.send(resultMessage.success({ url: filename }));
+			ImgDeal(filename, filePath);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

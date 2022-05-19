@@ -48,7 +48,7 @@ router.get('/replyListByReplyId', (req, res) => {
 
 // 上传评论图片
 router.post('/uploadImg', upload.single('file'), (req, res) => {
-	replyService.uploadImg(req, res, filename);
+	replyService.uploadImg(req, res, filename, config.commentPath);
 });
 
 module.exports = router;

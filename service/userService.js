@@ -6,6 +6,7 @@ const production = require('../models/production');
 const responseUtil = require('../util/responseUtil');
 const { getPhotoUrl } = require('../util/userUtil');
 const config = require('../config/config');
+const ImgDeal = require('../util/ImgDeal');
 
 const userModal = user(sequelize);
 const productionModal = production(sequelize);
@@ -13,7 +14,7 @@ const pagesize = 10;
 
 module.exports = {
 	// 上传用户头像
-	uploadFile: async (req, res, filename) => {
+	uploadFile: async (req, res, filename, filePath) => {
 		try {
 			const { user_id, type } = req.body;
 			if (!user) return res.send(resultMessage.error('上传失败'));
@@ -26,6 +27,7 @@ module.exports = {
 			}
 			await userModal.update(params, { where: { id: user_id } });
 			res.send(resultMessage.success({ url: filename }));
+			ImgDeal(filename, filePath);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

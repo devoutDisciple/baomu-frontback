@@ -6,6 +6,8 @@ const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const config = require('../config/config');
 
+const ImgDeal = require('../util/ImgDeal');
+
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
 const userModal = user(sequelize);
@@ -13,7 +15,7 @@ const levelModal = level(sequelize);
 
 module.exports = {
 	// 上传图片
-	uploadFile: async (req, res, filename) => {
+	uploadFile: async (req, res, filename, filePath) => {
 		try {
 			const { user_id, school_id, level_id, date } = req.body;
 			await levelModal.create({
@@ -26,6 +28,7 @@ module.exports = {
 				create_time: moment().format(timeformat),
 			});
 			res.send(resultMessage.success({ url: filename }));
+			ImgDeal(filename, filePath);
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());
