@@ -1,3 +1,3 @@
-const postMessage = require('./util/postMessage');
+const ImgDeal = require('./util/ImgDeal');
 
-postMessage.postJoinTeamMsg('18210619398');
+ImgDeal('1.jpeg', '.');
