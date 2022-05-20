@@ -10,6 +10,7 @@ const message = require('../models/message');
 const pay = require('../models/pay');
 const responseUtil = require('../util/responseUtil');
 const wechatUtil = require('../util/wechatUtil');
+const postMessage = require('../util/postMessage');
 
 const Op = Sequelize.Op;
 const payModal = pay(sequelize);
@@ -55,6 +56,10 @@ module.exports = {
 					type: 3,
 					create_time: params.create_time,
 				});
+				const personDetail = await userModal.findOne({ where: { id: params.join_ids }, attributes: ['id', 'phone', 'type'] });
+				const phone = personDetail.phone;
+				if (!phone || Number(personDetail.type) !== 1) return;
+				postMessage.sernd_message_for_sign_process(phone);
 			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
