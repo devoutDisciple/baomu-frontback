@@ -1,3 +1,7 @@
-const ImgDeal = require('./util/ImgDeal');
+const calculate = require('./util/calculate');
 
-ImgDeal('1.jpeg', '.');
+// calculate.sum(0.1, 0.2, 0.3, 0.8);
+
+// calculate.sub(1, 0.1, 0.2, 0.3, 0.8);
+const mm = calculate.mul(0.1, 0.2, 0.3);
+console.log(mm);

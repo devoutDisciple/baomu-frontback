@@ -44,7 +44,7 @@ module.exports = {
 	// 需求方支付，在议价确定之后，支付订单金额
 	payByShoper: async (req, res) => {
 		try {
-			// open_id, user_id, demand_id: demand_id, pay_type: 1
+			// open_id, user_id, demand_id: demand_id
 			const { user_id, demand_id, open_id } = req.body;
 			if (!demand_id || !open_id || !user_id) return res.send(resultMessage.error('系统错误'));
 			const demandDetail = await demandModal.findOne({
@@ -55,7 +55,6 @@ module.exports = {
 				demandId: demand_id,
 				userId: user_id,
 				type: 1, // 1-商户付款 2-付款给演员
-				payType: 1, // 1-付款 2-退款 3-其他
 			};
 			let result = await wechatUtil.wechatPay({
 				money: demandDetail.final_price,
@@ -115,7 +114,6 @@ module.exports = {
 					out_trade_no: result.out_trade_no,
 					transaction_id: result.transaction_id,
 					type: attach.type,
-					pay_type: attach.payType,
 				},
 			});
 			if (payRecode) return res.send(resultMessage.success('success'));
@@ -128,7 +126,6 @@ module.exports = {
 				transaction_id: result.transaction_id,
 				trade_state: result.trade_state,
 				type: attach.type,
-				pay_type: attach.payType,
 				money: result.amount.payer_total,
 				create_time: moment().format(timeformat),
 			});
@@ -154,7 +151,7 @@ module.exports = {
 		try {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.success([]));
-			const commonFields = ['id', 'pay_type', 'type', 'out_trade_no', 'money', 'create_time'];
+			const commonFields = ['id', 'type', 'out_trade_no', 'money', 'create_time'];
 			const payRecords = await payModal.findAll({
 				where: { user_id, is_delete: 1 },
 				attributes: commonFields,
@@ -163,7 +160,6 @@ module.exports = {
 			result.forEach((item) => {
 				item.create_time = moment(item.create_time).format('YYYY-MM-DD HH:mm:ss');
 				item.money = Number(Number(item.money) / 100).toFixed(2);
-				item.pay_type = Number(item.pay_type);
 			});
 			// 创建订单信息
 			res.send(resultMessage.success(result));

@@ -53,4 +53,9 @@ router.post('/cancle', (req, res) => {
 	demandService.cancleOrder(req, res);
 });
 
+// 完成订单
+router.post('/complete', (req, res) => {
+	demandService.completeOrder(req, res);
+});
+
 module.exports = router;

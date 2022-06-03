@@ -43,8 +43,13 @@ module.exports = {
 			const { user_id, other_id } = req.body;
 			if (!user_id || !other_id) return res.send(resultMessage.error('系统错误'));
 			await userAttentionUserModal.update({ is_delete: 2 }, { where: { user_id, other_id } });
-			userModal.decrement({ attention_num: 1 }, { where: { id: user_id } });
-			userModal.decrement({ fans_num: 1 }, { where: { id: other_id } });
+			const userDetail = await userModal.findOne({ where: { id: user_id } });
+			if (userDetail.attention_num > 0) {
+				userModal.decrement({ attention_num: 1 }, { where: { id: user_id } });
+			}
+			if (userDetail.fans_num > 0) {
+				userModal.decrement({ fans_num: 1 }, { where: { id: other_id } });
+			}
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);

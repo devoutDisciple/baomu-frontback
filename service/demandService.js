@@ -8,11 +8,15 @@ const user = require('../models/user');
 const priceRecord = require('../models/price_record');
 const message = require('../models/message');
 const pay = require('../models/pay');
+const money = require('../models/money');
 const responseUtil = require('../util/responseUtil');
 const wechatUtil = require('../util/wechatUtil');
 const postMessage = require('../util/postMessage');
+const calculate = require('../util/calculate');
+const config = require('../config/config');
 
 const Op = Sequelize.Op;
+const moneyModal = money(sequelize);
 const payModal = pay(sequelize);
 const messageModal = message(sequelize);
 const priceRecordModal = priceRecord(sequelize);
@@ -521,13 +525,48 @@ module.exports = {
 				if (!payDetail || !payDetail.transaction_id) {
 					return res.send(resultMessage.success('success'));
 				}
+				// 实际退款金额
+				const refundMoney = parseInt(calculate.mul(Number(payDetail.money), config.REFUND_RATE), 10); // 总金额 * 退款税率
 				const params = {
 					transaction_id: payDetail.transaction_id, // 微信订单号
-					refund: Number(payDetail.money), // 退款金额
+					refund: refundMoney, // 总金额 * 退款税率
 					total: Number(payDetail.money), // 原来总金额
 				};
 				wechatUtil.payRefunds(params);
 			}
+			res.send(resultMessage.success('success'));
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	// 点击完成演出
+	completeOrder: async (req, res) => {
+		try {
+			const { id } = req.body;
+			if (!id) return res.send(resultMessage.error('系统错误'));
+			const demandDetail = await demandModal.findOne({ where: { id } });
+			// 判断如果需求状态不是待完成，不进行后续操作
+			if (demandDetail.state !== 5) return res.send(resultMessage.error('系统错误'));
+			// 改变需求状态为付款给用户，未评价
+			await demandModal.update({ state: 6 }, { where: { id: demandDetail.id } });
+			// 用户余额增加该条需求的金额
+			const { final_user_id, final_price } = demandDetail;
+			// 查询用户详情
+			const userDetail = await userModal.findOne({ where: { id: final_user_id } });
+			// 给用户余额增加一条记录
+			await moneyModal.create({
+				user_id: userDetail.id,
+				type: 1, // 1-演出所得 2-退款所得 3-金额提现
+				total_money: final_price,
+				real_money: calculate.mul(final_price, config.WITHDRAW_RATE), // 提现时候的真实金额
+				rate: config.WITHDRAW_RATE, // 提现费率
+				rate_money: calculate.sub(final_price, calculate.mul(final_price, config.WITHDRAW_RATE)),
+				demand_id: demandDetail.id, // 演出的id
+				create_time: moment().format('YYYY-MM-DD HH:mm:ss'),
+				is_delete: 1,
+			});
 			res.send(resultMessage.success('success'));
 		} catch (error) {
 			console.log(error);
