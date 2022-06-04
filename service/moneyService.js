@@ -12,6 +12,7 @@ const userModal = user(sequelize);
 const payModal = pay(sequelize);
 const wechatCompany = require('../util/wechatCompany');
 const ObjectUtil = require('../util/ObjectUtil');
+const responseUtil = require('../util/responseUtil');
 
 const timeformat = 'YYYY-MM-DD HH:mm:ss';
 
@@ -45,7 +46,7 @@ const getUserAccount = async (user_id) => {
 		});
 	}
 	// 可用金额
-	availableMoney = calculate.sub(sumMoney, freezeMoney);
+	availableMoney = sumMoney;
 	sumMoney = Number(sumMoney).toFixed(2);
 	return {
 		sumMoney: Number(sumMoney).toFixed(2), // 总金额
@@ -126,12 +127,13 @@ module.exports = {
 			const payDetail = await payModal.create({
 				user_id: userDetail.id,
 				open_id: userDetail.wx_openid,
+				type: 2, // 1-商户付款 2-付款给演员 3-退款给商户 4-退款给用户
 				batch_id: result.batch_id,
 				out_batch_no: result.out_batch_no,
 				out_detail_no,
 				batch_status: 'WAIT_PAY', // 系统转账的-状态 WAIT_PAY：待付款 ACCEPTED:已受理 PROCESSING:转账中 FINISHED：已完成 CLOSED：已关闭
 				batch_detail_status: 'PROCESSING', // 系统转账的-明细状态   PROCESSING：转账中 SUCCESS：转账成功 FAIL：转账失败
-				money: real_money,
+				money: calculate.mul(real_money, 100),
 				create_time: moment().format(timeformat),
 				is_delete: 1,
 			});
@@ -139,7 +141,8 @@ module.exports = {
 			// 给用户余额增加一条提现记录
 			const moneyDetail = await moneyModal.create({
 				user_id: userDetail.id,
-				type: 1, // 1-演出所得 2-退款所得 3-金额提现
+				pay_id: payDetail.id,
+				type: 3, // 1-演出所得 2-退款所得 3-金额提现
 				total_money, // 提现的总金额
 				real_money, // 提现时候的真实金额
 				rate: config.WITHDRAW_RATE, // 提现费率
@@ -186,7 +189,11 @@ module.exports = {
 				if (num > 50) return;
 				const billDetail = await wechatCompany.searchDetail({ batch_id: result.batch_id });
 				console.log(billDetail, 233);
-				if (billDetail.transfer_batch && Array.isArray(billDetail.transfer_detail_list)) {
+				if (
+					billDetail.transfer_batch &&
+					Array.isArray(billDetail.transfer_detail_list) &&
+					billDetail.transfer_detail_list.length !== 0
+				) {
 					// 更新账单
 					await payModal.update(
 						{
@@ -208,11 +215,29 @@ module.exports = {
 						onSearchDetail();
 					}, num * 60 * 1000);
 				}
-				// if (global.timer[timerUuid]) {
-				// 	clearInterval(global.timer[timerUuid]);
-				// }
 			};
 			onSearchDetail();
+		} catch (error) {
+			console.log(error);
+			res.send(resultMessage.error());
+		}
+	},
+
+	getUserMoneyRecord: async (req, res) => {
+		try {
+			const { user_id } = req.query;
+			if (!user_id) return res.send(resultMessage.error('系统错误'));
+			const moneyList = await moneyModal.findAll({ where: { user_id } });
+			const result = responseUtil.renderFieldsAll(moneyList, [
+				'id',
+				'user_id',
+				'pay_id',
+				'type',
+				'total_money',
+				'state',
+				'create_time',
+			]);
+			res.send(resultMessage.success(result));
 		} catch (error) {
 			console.log(error);
 			res.send(resultMessage.error());

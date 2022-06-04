@@ -8,6 +8,7 @@ const pay = require('../models/pay');
 const user = require('../models/user');
 const responseUtil = require('../util/responseUtil');
 const postMessage = require('../util/postMessage');
+const calculate = require('../util/calculate');
 
 const userModal = user(sequelize);
 const payModal = pay(sequelize);
@@ -151,7 +152,7 @@ module.exports = {
 		try {
 			const { user_id } = req.query;
 			if (!user_id) return res.send(resultMessage.success([]));
-			const commonFields = ['id', 'type', 'out_trade_no', 'money', 'create_time'];
+			const commonFields = ['id', 'type', 'money', 'create_time'];
 			const payRecords = await payModal.findAll({
 				where: { user_id, is_delete: 1 },
 				attributes: commonFields,
@@ -159,7 +160,7 @@ module.exports = {
 			const result = responseUtil.renderFieldsAll(payRecords, commonFields);
 			result.forEach((item) => {
 				item.create_time = moment(item.create_time).format('YYYY-MM-DD HH:mm:ss');
-				item.money = Number(Number(item.money) / 100).toFixed(2);
+				item.money = calculate.div(item.money, 100);
 			});
 			// 创建订单信息
 			res.send(resultMessage.success(result));

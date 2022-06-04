@@ -86,7 +86,6 @@ module.exports = {
 			},
 		});
 		const data = await response.json();
-		console.log(data, 1111);
 		// 支付成功返回
 		// {
 		// 	batch_id: '1030000048801375938082022060300844741378', // 微信批次单号
@@ -113,7 +112,6 @@ module.exports = {
 			},
 		});
 		const data = await response.json();
-		console.log(data, 111);
 		return data;
 	},
 };

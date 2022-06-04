@@ -13,6 +13,11 @@ module.exports = (sequelize) => {
       allowNull: false,
       comment: "用户id"
     },
+    pay_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      comment: "pay表中的id"
+    },
     type: {
       type: Sequelize.INTEGER,
       allowNull: true,

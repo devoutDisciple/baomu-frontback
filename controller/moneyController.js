@@ -13,4 +13,9 @@ router.post('/withdraw', (req, res) => {
 	moneyService.withdraw(req, res);
 });
 
+// 用户提现 withdraw
+router.get('/allRecord', (req, res) => {
+	moneyService.getUserMoneyRecord(req, res);
+});
+
 module.exports = router;
